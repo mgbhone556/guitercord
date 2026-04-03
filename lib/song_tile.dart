@@ -5,8 +5,14 @@ import 'package:guitercord/model.dart';
 class SongTile extends StatelessWidget {
   final String song;
   final Singer singer;
+  final VoidCallback? onReturn;
 
-  const SongTile({super.key, required this.song, required this.singer});
+  const SongTile({
+    super.key,
+    required this.song,
+    required this.singer,
+    this.onReturn,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +45,10 @@ class SongTile extends StatelessWidget {
               builder: (context) =>
                   ChordViewScreen(songName: song, singer: singer),
             ),
-          );
+          ).then((_) {
+            // When we come back, run the refresh function if it exists
+            if (onReturn != null) onReturn!();
+          });
         },
       ),
     );
