@@ -2,6 +2,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:guitercord/model.dart';
+import 'package:guitercord/song_tile.dart';
 
 class DetailScreen extends StatelessWidget {
   final Singer singer;
@@ -92,42 +93,7 @@ class DetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
                   ...singer.popularSongs.map(
-                    (song) => Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(18),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 4,
-                        ),
-                        leading: const Icon(
-                          Icons.play_circle_filled_rounded,
-                          color: Colors.deepPurple,
-                          size: 32,
-                        ),
-                        title: Text(
-                          song,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        trailing: const Text(
-                          "4 Chords",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Opening chords for $song")),
-                        ),
-                      ),
-                    ),
+                    (song) => SongTile(song: song, singer: singer),
                   ),
 
                   const SizedBox(height: 40),

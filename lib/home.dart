@@ -1,9 +1,13 @@
 // ── Home Screen ─────────────────────────────────
+import 'dart:ui';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:guitercord/artist.dart';
 import 'package:guitercord/detail.dart';
+import 'package:guitercord/drawer.dart';
 import 'package:guitercord/model.dart';
+import 'package:guitercord/search.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback onThemeToggle;
@@ -20,408 +24,220 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String _searchQuery = "";
+  final String _searchQuery = "";
 
   @override
   Widget build(BuildContext context) {
+    // Pro tip: Compute filtered lists outside the build method logic if possible
     final filteredSingers = singers
         .where((s) => s.name.toLowerCase().contains(_searchQuery.toLowerCase()))
         .toList();
 
     return Scaffold(
+      drawer: AppDrawer(
+        isDarkMode: widget.isDarkMode,
+        onThemeToggle: widget.onThemeToggle,
+        singers: [],
+      ),
+      // Use a Scaffold background that matches your "Modern" container
+      backgroundColor: widget.isDarkMode
+          ? const Color(0xFF0A0A0F)
+          : const Color(0xFFF8F9FA),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          _buildAppBar(),
-          _buildPopularArtistsHeader(),
+          _buildAppBar(context),
 
-          // 1. ARTISTS SECTION (ဒီကောင်က အပေါ်ဆုံးအလွှာ ဖြစ်ပါမယ်)
-          _buildArtistsSection(filteredSingers),
-
-          // 2. TRENDING SHEET (ဒါက အနောက်ကနေ ကပ်ပါလာမယ့် Sheet အကြီးကြီးပါ)
-          SliverToBoxAdapter(
-            child: Stack(
-              clipBehavior: Clip.none, // အပြင်ဘက်ကို ထွက်ခွင့်ပေးဖို့
-              children: [
-                // ဒီ Container က Artist Card တွေရဲ့ အနောက်ကို -60 လောက်အထိ တိုးဝင်သွားမှာပါ
-                Transform.translate(
-                  offset: const Offset(0, -60),
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: widget.isDarkMode
-                          ? const Color(0xFF0A0A0F)
-                          : const Color(0xFFF8F9FA),
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(35),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(
-                            widget.isDarkMode ? 0.4 : 0.08,
-                          ),
-                          blurRadius: 30,
-                          offset: const Offset(0, -15),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Grabber Handle
-                        Center(
-                          child: Container(
-                            margin: const EdgeInsets.only(top: 15),
-                            width: 40,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: widget.isDarkMode
-                                  ? Colors.white10
-                                  : Colors.black12,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                        ),
-
-                        // TRENDING HEADER
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(24, 25, 24, 15),
-                          child: Text(
-                            "Trending Now",
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-
-                        // TRENDING GRID
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: GridView.builder(
-                            padding: const EdgeInsets.only(bottom: 60),
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  mainAxisSpacing: 18,
-                                  crossAxisSpacing: 18,
-                                  childAspectRatio: 1.05,
-                                ),
-                            itemCount: 8,
-                            itemBuilder: (context, i) => const _TrendingCard(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+          // Section 1: Popular Artists Header
+          _buildSectionHeader(
+            "Popular Artists",
+            onSeeAll: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AllArtistsPage(isDarkMode: widget.isDarkMode),
                 ),
-              ],
+              );
+            },
+          ),
+
+          // Section 2: Horizontal Artists List
+          SliverToBoxAdapter(
+            child: _buildArtistsHorizontalList(filteredSingers),
+          ),
+
+          // Section 3: Trending Header
+          _buildSectionHeader("Trending Now"),
+
+          // Section 4: The Grid (No longer nested in a Container for better performance)
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 0.85, // Adjusted for better card height
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => const _TrendingCard(),
+                childCount: 8,
+              ),
             ),
           ),
+
+          // Bottom padding for the scroll view
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
     );
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: 110,
-      floating: false,
+      expandedHeight: 70,
+      floating: true,
       pinned: true,
       elevation: 0,
-      backgroundColor: Colors.transparent,
-      systemOverlayStyle: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: widget.isDarkMode
-            ? Brightness.light
-            : Brightness.dark,
+      centerTitle: false,
+      title: const Text(
+        "Discover",
+        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 28),
       ),
-      title: Text(
-        "Chordly",
-        style: TextStyle(
-          color: widget.isDarkMode ? Colors.white : Colors.black87,
-          fontSize: 24,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                widget.isDarkMode
-                    ? const Color(0xFF0A0A0F)
-                    : const Color(0xFFF8F9FA),
-                Colors.transparent,
-              ],
-            ),
-          ),
+      backgroundColor: widget.isDarkMode
+          ? const Color(0xFF0A0A0F).withOpacity(0.8)
+          : Colors.white.withOpacity(0.8),
+      // Pro: Add blur to the pinned app bar
+      flexibleSpace: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(color: Colors.transparent),
         ),
       ),
       actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 16, top: 8),
-          child: IconButton(
-            onPressed: widget.onThemeToggle,
-            icon: Icon(widget.isDarkMode ? Icons.light_mode : Icons.dark_mode),
-            style: IconButton.styleFrom(
-              backgroundColor: widget.isDarkMode
-                  ? Colors.white.withOpacity(0.1)
-                  : Colors.black.withOpacity(0.08),
-            ),
+        IconButton(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SearchPage()),
+          ),
+          icon: const Icon(Icons.search_rounded),
+          style: IconButton.styleFrom(
+            backgroundColor: widget.isDarkMode
+                ? Colors.white10
+                : Colors.black12,
           ),
         ),
+        const SizedBox(width: 16),
       ],
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(75),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-          child: _buildSearchBar(),
-        ),
-      ),
     );
   }
 
-  Widget _buildSearchBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
-      decoration: BoxDecoration(
-        color: widget.isDarkMode ? const Color(0xFF18161F) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(widget.isDarkMode ? 0.3 : 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: TextField(
-        onChanged: (value) => setState(() => _searchQuery = value),
-        decoration: const InputDecoration(
-          hintText: "Search artists or songs...",
-          border: InputBorder.none,
-          prefixIcon: Icon(Icons.search_rounded),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPopularArtistsHeader() {
-    return const SliverToBoxAdapter(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(24, 16, 24, 8),
-        child: Text(
-          "Popular Artists",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTrendingHeader() {
-    return const SliverToBoxAdapter(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(24, 32, 24, 8),
-        child: Text(
-          "Trending Now",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildArtistsSection(List<Singer> filtered) {
-    return SliverToBoxAdapter(
-      child: SizedBox(
-        height: 235,
-        child: ListView.builder(
-          padding: const EdgeInsets.only(left: 24),
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          itemCount: filtered.length,
-          itemBuilder: (context, index) => GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => DetailScreen(singer: filtered[index]),
-              ),
-            ),
-            child: _SingerCard(singer: filtered[index]),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTrendingSection() {
+  Widget _buildSectionHeader(String title, {VoidCallback? onSeeAll}) {
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 20,
-          crossAxisSpacing: 20,
-          childAspectRatio: 1.08,
+      padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
+      sliver: SliverToBoxAdapter(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+              ),
+            ),
+            if (onSeeAll != null)
+              TextButton(onPressed: onSeeAll, child: const Text("See All")),
+          ],
         ),
-        delegate: SliverChildBuilderDelegate(
-          (context, i) => const _TrendingCard(),
-          childCount: 8,
+      ),
+    );
+  }
+
+  Widget _buildArtistsHorizontalList(List<Singer> filtered) {
+    return SizedBox(
+      // 1. Ensure the total height covers the card (155) + the pop (-25) + padding
+      height: 220,
+      child: ListView.builder(
+        // 2. CRITICAL: This allows the Avatar to bleed outside the ListView's box
+        clipBehavior: Clip.none,
+        // 3. IMPORTANT: Add top padding so the head has 'breathing room'
+        // within the 220 height.
+        padding: const EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 35, // Room for the head
+          bottom: 10, // Room for the shadow
         ),
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: filtered.length,
+        itemBuilder: (context, index) => _SingerCard(singer: filtered[index]),
       ),
     );
   }
 }
 
-// ── Modern Singer Card ─────────────────────────────────
-class _SingerCard extends StatelessWidget {
-  final Singer singer;
-  const _SingerCard({required this.singer});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 160,
-      margin: const EdgeInsets.only(right: 20),
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          Container(
-            height: 165,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  singer.accentColor.withOpacity(0.9),
-                  singer.accentColor.withOpacity(0.6),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: [
-                BoxShadow(
-                  color: singer.accentColor.withOpacity(0.4),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            bottom: 18,
-            left: 18,
-            right: 18,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  singer.name,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16.5,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  singer.genre,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.85),
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            top: 14,
-            child: Hero(
-              tag: "hero-${singer.name}",
-              child: CircleAvatar(
-                radius: 52,
-                backgroundColor: Colors.white,
-                child: ClipOval(
-                  child: CachedNetworkImage(
-                    imageUrl: singer.imageUrl,
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) =>
-                        const CircularProgressIndicator(strokeWidth: 3),
-                    errorWidget: (_, __, ___) => const Icon(Icons.error),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Trending Card ─────────────────────────────────
+// ── Improved Trending Card ─────────────────────────────────
 class _TrendingCard extends StatelessWidget {
   const _TrendingCard();
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
+        // Pro Tip: Multiple shadows for "soft" look
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.4 : 0.12),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: Stack(
+          fit: StackFit.expand,
           children: [
-            const DecoratedBox(
-              decoration: BoxDecoration(
+            // Pro: Use a placeholder image or gradient
+            Container(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF6B46C0), Color(0xFF9F7AEA)],
+                  colors: [Color(0xFF1E1E26), Color(0xFF2C2C38)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
               ),
             ),
-            const Positioned(
-              top: 14,
-              right: 14,
-              child: Icon(
-                Icons.whatshot_rounded,
-                color: Colors.white,
-                size: 32,
-              ),
-            ),
-            const Positioned(
-              bottom: 18,
-              left: 18,
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Icon(
+                    Icons.play_circle_fill_rounded,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                  const Spacer(),
+                  const Text(
                     "Blinding Lights",
                     style: TextStyle(
                       color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
                     ),
                   ),
                   Text(
                     "The Weeknd",
-                    style: TextStyle(color: Colors.white70, fontSize: 13.5),
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.6),
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -430,5 +246,219 @@ class _TrendingCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _SingerCard extends StatelessWidget {
+  final Singer singer;
+  const _SingerCard({required this.singer});
+
+  @override
+  Widget build(BuildContext context) {
+    return _PressedWrapper(
+      onTap: () {
+        Feedback.forTap(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => DetailScreen(singer: singer)),
+        );
+      },
+      child: Container(
+        width: 160,
+        margin: const EdgeInsets.only(
+          right: 20,
+          top: 35,
+        ), // Space for the Avatar "Pop"
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // 1. THE MAIN BODY
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    height: 165, // Fixed height for consistency
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(28),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          singer.accentColor,
+                          Color.lerp(singer.accentColor, Colors.black, 0.2)!,
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: singer.accentColor.withOpacity(0.3),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // 2. THE AVATAR (Positioned relative to card top)
+                Positioned(
+                  top: -25,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Hero(
+                      tag: "hero-${singer.name}",
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: CircleAvatar(
+                          radius: 42,
+                          backgroundImage: CachedNetworkImageProvider(
+                            singer.imageUrl,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // 3. TEXT INFO (Moved up slightly & Overflow Protected)
+                Positioned(
+                  // 'bottom: 35' moves the text up away from the very bottom edge
+                  bottom: 20,
+                  left: 14,
+                  right: 14,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // NAME + VERIFIED ROW
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Opacity(
+                              opacity: 0.9,
+                              child: Text(
+                                singer.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.verified,
+                            color: Colors.blueAccent,
+                            size: 16,
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      // GENRE + BADGE ROW
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Opacity(
+                              opacity: 0.8,
+                              child: Text(
+                                singer.genre.toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              "24 Songs",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+// ── PRO FEATURE: BOUNCE ANIMATION ──────────────────────────────
+class _PressedWrapper extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const _PressedWrapper({required this.child, required this.onTap});
+
+  @override
+  State<_PressedWrapper> createState() => _PressedWrapperState();
+}
+
+class _PressedWrapperState extends State<_PressedWrapper>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+    );
+    _scale = Tween<double>(begin: 1.0, end: 0.95).animate(_controller);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _controller.forward(),
+      onTapUp: (_) => _controller.reverse(),
+      onTapCancel: () => _controller.reverse(),
+      onTap: widget.onTap,
+      child: ScaleTransition(scale: _scale, child: widget.child),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }
