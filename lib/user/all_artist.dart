@@ -1,7 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Add this
 import 'package:flutter/material.dart';
 import 'package:guitercord/user/detail.dart';
-import 'package:guitercord/user/model.dart';
+import 'package:guitercord/model/artist.dart';
+import 'package:guitercord/util/empty_state.dart';
 
 class AllArtistsPage extends StatelessWidget {
   final bool isDarkMode;
@@ -34,24 +36,54 @@ class AllArtistsPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(20),
-        physics: const BouncingScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 20,
-          crossAxisSpacing: 20,
-          childAspectRatio: 0.85,
-        ),
-        itemCount: singers.length,
-        itemBuilder: (context, index) {
-          final singer = singers[index];
-          return GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => DetailScreen(singer: singer)),
+      // --- PRO CRUD: Real-time Stream from Firestore ---
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('singers').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text("Something went wrong"));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final data = snapshot.data!.docs;
+
+          if (data.isEmpty) {
+            return EmptyState(isDark: isDarkMode, icon: Icons.music_note);
+          }
+
+          return GridView.builder(
+            padding: const EdgeInsets.all(20),
+            physics: const BouncingScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 20,
+              crossAxisSpacing: 20,
+              childAspectRatio: 0.85,
             ),
-            child: _CompactSingerCard(singer: singer, isDarkMode: isDarkMode),
+            itemCount: data.length, // Dynamic count from DB
+            itemBuilder: (context, index) {
+              // Convert Firestore Map to Singer Object
+              final singer = Singer.fromMap(
+                data[index].data() as Map<String, dynamic>,
+                data[index].id,
+              );
+
+              return GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => DetailScreen(singer: singer),
+                  ),
+                ),
+                child: _CompactSingerCard(
+                  singer: singer,
+                  isDarkMode: isDarkMode,
+                ),
+              );
+            },
           );
         },
       ),

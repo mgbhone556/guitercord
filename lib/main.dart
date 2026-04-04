@@ -1,14 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-// 1. ADD THIS IMPORT for kIsWeb
-import 'package:flutter/foundation.dart' show kIsWeb;
 
-import 'package:guitercord/admin/admin.dart';
+import 'package:guitercord/auth/auth_wrapper.dart';
 import 'package:guitercord/auth/login.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:guitercord/auth/service.dart';
 import 'package:guitercord/firebase_options.dart';
-import 'package:guitercord/user/home.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,30 +30,22 @@ class _ChordAppState extends State<ChordApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: isDarkMode ? _darkTheme : _lightTheme,
+      // ... inside your ChordApp build method ...
       home: StreamBuilder<firebase_auth.User?>(
         stream: AuthService().userStatus,
         builder: (context, snapshot) {
-          // 1. Still checking Firebase?
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           }
 
-          // 2. Not logged in?
-          if (!snapshot.hasData) {
-            return const LoginScreen();
+          if (snapshot.hasData) {
+            // Pass the logged-in user to the wrapper to check their role
+            return AuthWrapper(user: snapshot.data!);
           }
 
-          // 3. Logged in! Now check Platform
-          if (kIsWeb) {
-            return const AdminDashboard(); // Your Web Admin
-          } else {
-            return HomeScreen(
-              onThemeToggle: toggleTheme,
-              isDarkMode: isDarkMode,
-            ); // Mobile App
-          }
+          return const LoginScreen();
         },
       ),
     );

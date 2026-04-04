@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:guitercord/user/favorites_manager.dart';
-import 'package:guitercord/user/model.dart';
+import 'package:guitercord/model/artist.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ChordViewScreen extends StatefulWidget {

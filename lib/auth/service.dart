@@ -1,40 +1,47 @@
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // This links to your new database
 import 'package:flutter/material.dart';
 
 class AuthService {
-  final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Stream to track login status
-  Stream<firebase_auth.User?> get userStatus => _auth.authStateChanges();
+  Stream<User?> get userStatus => _auth.authStateChanges();
 
-  // Login
-  Future<firebase_auth.User?> signIn(String email, String password) async {
+  // --- LOGIN ---
+  Future<UserCredential?> signInWithEmail(String email, String password) async {
     try {
-      final credential = await _auth.signInWithEmailAndPassword(
+      return await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return credential.user;
     } catch (e) {
       debugPrint("Login Error: $e");
       return null;
     }
   }
 
-  // Register
-  Future<firebase_auth.User?> register(String email, String password) async {
+  // --- REGISTER (Creates the Role) ---
+  Future<UserCredential?> signUpWithEmail(String email, String password) async {
     try {
-      final credential = await _auth.createUserWithEmailAndPassword(
+      UserCredential credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return credential.user;
+
+      // This creates the "clickable" role field in your Firestore
+      await _db.collection('users').doc(credential.user!.uid).set({
+        'email': email,
+        'role': 'user',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      return credential;
     } catch (e) {
       debugPrint("Register Error: $e");
       return null;
     }
   }
 
-  // Logout
   Future<void> signOut() async => await _auth.signOut();
 }

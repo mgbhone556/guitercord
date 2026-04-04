@@ -11,7 +11,7 @@ class EmptyState extends StatelessWidget {
     required this.isDark,
     this.title = "Your stage is empty!",
     this.subtitle = "Songs you heart will appear here.",
-    this.icon = Icons.favorite_border_rounded,
+    required this.icon,
   });
 
   @override
