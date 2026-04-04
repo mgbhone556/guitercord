@@ -1,8 +1,8 @@
 // ── Detail Screen ─────────────────────────────────
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:guitercord/model.dart';
-import 'package:guitercord/song_tile.dart';
+import 'package:guitercord/user/model.dart';
+import 'package:guitercord/user/song_tile.dart';
 
 class DetailScreen extends StatelessWidget {
   final Singer singer;

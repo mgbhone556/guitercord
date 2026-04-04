@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "188389291755",
+    "project_id": "cord-library",
+    "storage_bucket": "cord-library.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:188389291755:android:51f6fceb565dc297d730ae",
+        "android_client_info": {
+          "package_name": "com.example.guitercord"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5qs50pwcmm3HNT3ZAqc_kRLWc4dn7tTQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

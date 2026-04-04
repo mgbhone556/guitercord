@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:guitercord/detail.dart';
-import 'package:guitercord/model.dart';
+import 'package:guitercord/user/detail.dart';
+import 'package:guitercord/user/model.dart';
 
 class AllArtistsPage extends StatelessWidget {
   final bool isDarkMode;

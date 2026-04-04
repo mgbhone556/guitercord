@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:guitercord/cord.dart';
-import 'package:guitercord/model.dart';
+import 'package:guitercord/user/cord.dart';
+import 'package:guitercord/user/model.dart';
 
 class SongTile extends StatelessWidget {
   final String song;

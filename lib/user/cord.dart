@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:guitercord/favorites_manager.dart';
-import 'package:guitercord/model.dart';
+import 'package:guitercord/user/favorites_manager.dart';
+import 'package:guitercord/user/model.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ChordViewScreen extends StatefulWidget {
   // Changed to Stateful
@@ -19,11 +20,33 @@ class ChordViewScreen extends StatefulWidget {
 
 class _ChordViewScreenState extends State<ChordViewScreen> {
   late bool isFavorited; // Internal state for this song
+  final ScrollController _scrollController = ScrollController();
   @override
   void initState() {
     super.initState();
     // 2. Check the real status from the Manager immediately
     isFavorited = FavoritesManager.getFavoriteSongs().contains(widget.songName);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _shareSong(BuildContext context) {
+    final RenderBox? box = context.findRenderObject() as RenderBox?;
+    if (box == null) return;
+
+    final Offset position = box.localToGlobal(Offset.zero);
+
+    // We add a tiny delay to ensure the UI is "settled" before opening the sheet
+    Future.delayed(Duration.zero, () {
+      Share.share(
+        "Check out ${widget.songName} chords!",
+        sharePositionOrigin: position & box.size,
+      );
+    });
   }
 
   void _toggleFavorite() {
@@ -53,6 +76,7 @@ class _ChordViewScreenState extends State<ChordViewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,60 +108,94 @@ class _ChordViewScreenState extends State<ChordViewScreen> {
               ),
             ),
           ),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.share_outlined)),
+          Builder(
+            builder: (buttonContext) => IconButton(
+              onPressed: () => _shareSong(buttonContext),
+              icon: const Icon(Icons.share_outlined),
+            ),
+          ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Chords Used",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 15),
-            Row(
-              children: ["G", "Em", "C", "D"]
-                  .map(
-                    (chord) => _buildChordBox(chord, widget.singer.accentColor),
-                  )
-                  .toList(),
-            ),
-            const Divider(height: 40),
-
-            // ... rest of your body remains the same (use widget.singer.accentColor)
-
-            // Helper widgets (_buildChordBox, _buildLyricLine) go here...
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: ScrollConfiguration(
+        behavior: const ScrollBehavior().copyWith(
+          overscroll: false,
+        ), // Removes glow
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            // If the system tries to force a scroll during the share popup,
+            // returning true "swallows" the notification.
+            return false;
+          },
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            physics:
+                const ClampingScrollPhysics(), // Use Clamping instead of NeverScrollable
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  "Lyrics & Chords",
+                  "Chords Used",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                TextButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.transform_sharp, size: 18),
-                  label: const Text("Transpose"),
+                const SizedBox(height: 15),
+                Row(
+                  children: ["G", "Em", "C", "D"]
+                      .map(
+                        (chord) =>
+                            _buildChordBox(chord, widget.singer.accentColor),
+                      )
+                      .toList(),
+                ),
+                const Divider(height: 40),
+
+                // ... rest of your body remains the same (use widget.singer.accentColor)
+
+                // Helper widgets (_buildChordBox, _buildLyricLine) go here...
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Lyrics & Chords",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.transform_sharp, size: 18),
+                      label: const Text("Transpose"),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                _buildLyricLine(
+                  "G",
+                  "I'm heading out to the ",
+                  "Em",
+                  "west coast",
+                ),
+                _buildLyricLine(
+                  "C",
+                  "Where the sun meets the ",
+                  "D",
+                  "ocean blue",
+                ),
+
+                const SizedBox(height: 30),
+                Center(
+                  child: Text(
+                    "Enjoying the chords? Support ${widget.singer.name} by following!",
+                    style: const TextStyle(
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey,
+                    ),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            _buildLyricLine("G", "I'm heading out to the ", "Em", "west coast"),
-            _buildLyricLine("C", "Where the sun meets the ", "D", "ocean blue"),
-
-            const SizedBox(height: 30),
-            Center(
-              child: Text(
-                "Enjoying the chords? Support ${widget.singer.name} by following!",
-                style: const TextStyle(
-                  fontStyle: FontStyle.italic,
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

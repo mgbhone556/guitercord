@@ -3,11 +3,12 @@ import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:guitercord/artist.dart';
-import 'package:guitercord/detail.dart';
-import 'package:guitercord/drawer.dart';
-import 'package:guitercord/model.dart';
-import 'package:guitercord/search.dart';
+import 'package:guitercord/user/artist.dart';
+import 'package:guitercord/user/cord.dart';
+import 'package:guitercord/user/detail.dart';
+import 'package:guitercord/user/drawer.dart';
+import 'package:guitercord/user/model.dart';
+import 'package:guitercord/user/search.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback onThemeToggle;
@@ -79,10 +80,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisSpacing: 16,
                 childAspectRatio: 0.85, // Adjusted for better card height
               ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => const _TrendingCard(),
-                childCount: 8,
-              ),
+              // Inside _HomeScreenState -> build -> SliverGrid
+              delegate: SliverChildBuilderDelegate((context, index) {
+                // For demonstration, picking a singer from your filtered list
+                // and a placeholder song name.
+                final singer = filteredSingers[index % filteredSingers.length];
+
+                return _TrendingCard(
+                  songName: "Trending Song ${index + 1}",
+                  singer: singer,
+                );
+              }, childCount: 8),
             ),
           ),
 
@@ -179,70 +187,85 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ── Improved Trending Card ─────────────────────────────────
 class _TrendingCard extends StatelessWidget {
-  const _TrendingCard();
+  final String songName;
+  final Singer singer;
+
+  const _TrendingCard({required this.songName, required this.singer});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        // Pro Tip: Multiple shadows for "soft" look
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return _PressedWrapper(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                ChordViewScreen(songName: songName, singer: singer),
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Pro: Use a placeholder image or gradient
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF1E1E26), Color(0xFF2C2C38)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.play_circle_fill_rounded,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                  const Spacer(),
-                  const Text(
-                    "Blinding Lights",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                  Text(
-                    "The Weeknd",
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      singer.accentColor.withOpacity(0.8),
+                      const Color(0xFF1E1E26),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.play_circle_fill_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                    const Spacer(),
+                    Text(
+                      songName, // Dynamic Song Name
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text(
+                      singer.name, // Dynamic Singer Name
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.6),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

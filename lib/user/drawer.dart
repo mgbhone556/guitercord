@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:guitercord/favorite.dart';
-import 'package:guitercord/model.dart';
+import 'package:guitercord/user/favorite.dart';
+import 'package:guitercord/user/model.dart';
 
 class AppDrawer extends StatelessWidget {
   final bool isDarkMode;
