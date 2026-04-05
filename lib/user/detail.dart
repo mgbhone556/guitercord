@@ -6,7 +6,8 @@ import 'package:guitercord/user/song_tile.dart';
 
 class DetailScreen extends StatelessWidget {
   final Singer singer;
-  const DetailScreen({super.key, required this.singer});
+  final String heroTag;
+  const DetailScreen({super.key, required this.singer, required this.heroTag});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +18,7 @@ class DetailScreen extends StatelessWidget {
             Stack(
               children: [
                 Hero(
-                  tag: "hero-${singer.name}",
+                  tag: "hero-${singer.id}",
                   child: SizedBox(
                     height: 400,
                     width: double.infinity,

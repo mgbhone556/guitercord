@@ -410,7 +410,12 @@ class _SingerCard extends StatelessWidget {
     return _PressedWrapper(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => DetailScreen(singer: singer)),
+        MaterialPageRoute(
+          builder: (context) => DetailScreen(
+            singer: singer,
+            heroTag: "popular-hero-${singer.name}",
+          ),
+        ),
       ),
       child: Container(
         width: 160,
@@ -448,7 +453,7 @@ class _SingerCard extends StatelessWidget {
               right: 0,
               child: Center(
                 child: Hero(
-                  tag: "hero-${singer.name}",
+                  tag: "hero-${singer.id}",
                   child: Container(
                     padding: const EdgeInsets.all(3),
                     decoration: const BoxDecoration(

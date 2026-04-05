@@ -1,8 +1,7 @@
 import 'dart:ui';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Singer {
-  final String? id; // Firestore Doc ID
+  final String? id;
   final String name;
   final String genre;
   final String imageUrl;
@@ -22,26 +21,25 @@ class Singer {
     required this.albums,
   });
 
-  // Convert Firestore Document to Singer Object
-  factory Singer.fromMap(Map<String, dynamic> map, String documentId) {
+  factory Singer.fromMap(Map<String, dynamic> map, String id) {
     return Singer(
-      id: documentId,
-      name: map['name'] ?? '',
-      genre: map['genre'] ?? '',
+      id: id,
+      name: map['name'] ?? 'Unknown Artist',
+      genre: map['genre'] ?? 'Genre',
       imageUrl: map['imageUrl'] ?? '',
-      accentColor: Color(map['accentColor'] ?? 0xFF4776E6),
+      // Converts Firestore hex string or int to Flutter Color
+      accentColor: Color(map['accentColor'] ?? 0xFF6200EE),
       bio: map['bio'] ?? '',
       popularSongs: List<String>.from(map['popularSongs'] ?? []),
       albums: List<String>.from(map['albums'] ?? []),
     );
   }
-
-  // Convert Singer Object to Map for Firestore
   Map<String, dynamic> toMap() {
     return {
       'name': name,
       'genre': genre,
       'imageUrl': imageUrl,
+      // Store the color as an integer value (0xFF...)
       'accentColor': accentColor.value,
       'bio': bio,
       'popularSongs': popularSongs,

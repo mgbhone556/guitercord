@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // Add this
 import 'package:flutter/material.dart';
 import 'package:guitercord/user/detail.dart';
 import 'package:guitercord/model/artist.dart';
-import 'package:guitercord/util/empty_state.dart';
+import 'package:guitercord/core/empty_state.dart';
 
 class AllArtistsPage extends StatelessWidget {
   final bool isDarkMode;
@@ -75,7 +75,10 @@ class AllArtistsPage extends StatelessWidget {
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => DetailScreen(singer: singer),
+                    builder: (_) => DetailScreen(
+                      singer: singer,
+                      heroTag: "popular-hero-${singer.name}",
+                    ),
                   ),
                 ),
                 child: _CompactSingerCard(

@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:guitercord/user/favorites_manager.dart';
 import 'package:guitercord/user/song_tile.dart';
-import 'package:guitercord/util/empty_state.dart';
+import 'package:guitercord/core/empty_state.dart';
 import 'package:guitercord/model/artist.dart';
 
 class FavoritesPage extends StatefulWidget {
