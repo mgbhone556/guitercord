@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:guitercord/user/favorites_manager.dart';
+import 'package:guitercord/core/chord_parser.dart';
 import 'package:guitercord/model/artist.dart';
+import 'package:guitercord/provider/favorites_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ChordViewScreen extends StatefulWidget {
-  // Changed to Stateful
   final String songName;
   final Singer singer;
+  final String songData; // Pass the raw string like "[G] My [D] Song" here
 
   const ChordViewScreen({
     super.key,
     required this.songName,
     required this.singer,
+    required this.songData,
   });
 
   @override
@@ -19,12 +21,12 @@ class ChordViewScreen extends StatefulWidget {
 }
 
 class _ChordViewScreenState extends State<ChordViewScreen> {
-  late bool isFavorited; // Internal state for this song
+  late bool isFavorited;
   final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
-    // 2. Check the real status from the Manager immediately
     isFavorited = FavoritesManager.getFavoriteSongs().contains(widget.songName);
   }
 
@@ -34,49 +36,103 @@ class _ChordViewScreenState extends State<ChordViewScreen> {
     super.dispose();
   }
 
+  // --- ACTIONS ---
   void _shareSong(BuildContext context) {
     final RenderBox? box = context.findRenderObject() as RenderBox?;
     if (box == null) return;
-
     final Offset position = box.localToGlobal(Offset.zero);
 
-    // We add a tiny delay to ensure the UI is "settled" before opening the sheet
-    Future.delayed(Duration.zero, () {
-      Share.share(
-        "Check out ${widget.songName} chords!",
-        sharePositionOrigin: position & box.size,
-      );
-    });
+    Share.share(
+      "Check out ${widget.songName} chords on Guitercord!",
+      sharePositionOrigin: position & box.size,
+    );
   }
 
   void _toggleFavorite() {
     setState(() {
-      // 3. Toggle the logic
       FavoritesManager.toggle(widget.songName);
-      // 4. Update the local bool to match the new state
       isFavorited = !isFavorited;
     });
-    // Pro Tip: Add a SnackBar with an action
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          isFavorited ? "Added to Favorites" : "Removed from Favorites",
-        ),
+        content: Text(isFavorited ? "Added to Favorites" : "Removed"),
         behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 1),
-        action: SnackBarAction(
-          label: "Undo",
-          onPressed: () => setState(() => isFavorited = !isFavorited),
-        ),
+        duration: const Duration(milliseconds: 800),
       ),
+    );
+  }
+
+  // --- UI BUILDERS ---
+
+  Widget _buildChordBox(String name, Color color) {
+    return Container(
+      width: 55,
+      height: 65,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const Icon(Icons.grid_on, size: 14, color: Colors.grey),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildParsedContent() {
+    final blocks = ChordProcessor.parse(widget.songData);
+
+    return Wrap(
+      runSpacing: 22, // Space between rows of lyrics
+      spacing: 2, // Space between words
+      children: blocks.map((block) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // The Chord (Always aligned above the start of its text)
+            if (block["chord"] != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  block["chord"]!,
+                  style: TextStyle(
+                    color: widget.singer.accentColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    fontFamily: 'monospace', // Better for chord alignment
+                  ),
+                ),
+              )
+            else
+              const SizedBox(height: 20), // Spacer if no chord exists
+            // The Lyric text
+            Text(
+              block["text"] ?? "",
+              style: const TextStyle(fontSize: 17, height: 1.1),
+            ),
+          ],
+        );
+      }).toList(),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,164 +148,77 @@ class _ChordViewScreenState extends State<ChordViewScreen> {
           ],
         ),
         actions: [
-          // --- FAVORITE BUTTON ---
           IconButton(
             onPressed: _toggleFavorite,
-            icon: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (child, animation) =>
-                  ScaleTransition(scale: animation, child: child),
-              child: Icon(
-                isFavorited
-                    ? Icons.favorite_rounded
-                    : Icons.favorite_border_rounded,
-                key: ValueKey<bool>(isFavorited),
-                color: isFavorited ? Colors.redAccent : null,
-              ),
+            icon: Icon(
+              isFavorited
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+              color: isFavorited ? Colors.redAccent : null,
             ),
           ),
           Builder(
-            builder: (buttonContext) => IconButton(
-              onPressed: () => _shareSong(buttonContext),
+            builder: (ctx) => IconButton(
+              onPressed: () => _shareSong(ctx),
               icon: const Icon(Icons.share_outlined),
             ),
           ),
         ],
       ),
-      body: ScrollConfiguration(
-        behavior: const ScrollBehavior().copyWith(
-          overscroll: false,
-        ), // Removes glow
-        child: NotificationListener<ScrollNotification>(
-          onNotification: (notification) {
-            // If the system tries to force a scroll during the share popup,
-            // returning true "swallows" the notification.
-            return false;
-          },
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            physics:
-                const ClampingScrollPhysics(), // Use Clamping instead of NeverScrollable
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        controller: _scrollController,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Chords Used",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: ["G", "Em", "C", "D"]
+                    .map((c) => _buildChordBox(c, widget.singer.accentColor))
+                    .toList(),
+              ),
+            ),
+            const Divider(height: 40),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  "Chords Used",
+                  "Lyrics & Chords",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 15),
-                Row(
-                  children: ["G", "Em", "C", "D"]
-                      .map(
-                        (chord) =>
-                            _buildChordBox(chord, widget.singer.accentColor),
-                      )
-                      .toList(),
-                ),
-                const Divider(height: 40),
-
-                // ... rest of your body remains the same (use widget.singer.accentColor)
-
-                // Helper widgets (_buildChordBox, _buildLyricLine) go here...
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Lyrics & Chords",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.transform_sharp, size: 18),
-                      label: const Text("Transpose"),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                _buildLyricLine(
-                  "G",
-                  "I'm heading out to the ",
-                  "Em",
-                  "west coast",
-                ),
-                _buildLyricLine(
-                  "C",
-                  "Where the sun meets the ",
-                  "D",
-                  "ocean blue",
-                ),
-
-                const SizedBox(height: 30),
-                Center(
-                  child: Text(
-                    "Enjoying the chords? Support ${widget.singer.name} by following!",
-                    style: const TextStyle(
-                      fontStyle: FontStyle.italic,
-                      color: Colors.grey,
-                    ),
-                  ),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.settings_overscan, size: 20),
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
+            const SizedBox(height: 20),
 
-  Widget _buildChordBox(String name, Color color) {
-    return Container(
-      width: 60,
-      height: 70,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            name,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
+            // This is where the magic happens
+            _buildParsedContent(),
+
+            const SizedBox(height: 60),
+            Center(
+              child: Text(
+                "Enjoying the chords? Support ${widget.singer.name}!",
+                style: const TextStyle(
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey,
+                ),
+              ),
             ),
-          ),
-          const Icon(Icons.grid_on, size: 16, color: Colors.grey),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLyricLine(String c1, String text1, String c2, String text2) {
-    const chordStyle = TextStyle(
-      color: Colors.blueAccent,
-      fontWeight: FontWeight.bold,
-      fontSize: 16,
-    );
-    const textStyle = TextStyle(fontSize: 17, height: 2);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(c1, style: chordStyle),
-              const SizedBox(width: 80),
-              Text(c2, style: chordStyle),
-            ],
-          ),
-          Text(text1 + text2, style: textStyle),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -9,7 +9,6 @@ class FavoritesManager {
     }
   }
 
-  // Add this so the FavoritesPage can see the list
   static List<String> getFavoriteSongs() {
     return _favoriteSongs;
   }

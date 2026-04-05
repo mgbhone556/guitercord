@@ -72,6 +72,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
+  // Inside _AdminDashboardState, update _buildSidebar:
+
   Widget _buildSidebar(ThemeData theme) {
     return Container(
       width: 260,
@@ -81,10 +83,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
           right: BorderSide(color: theme.dividerColor, width: 0.5),
         ),
       ),
-      child: AdminDrawer(
-        selectedIndex: _selectedIndex,
-        navItems: AdminNavConfig.navItems,
-        onTabSelected: _onTabChanged,
+      // Use Material to ensure text and icons render correctly
+      child: Material(
+        child: AdminDrawer(
+          selectedIndex: _selectedIndex,
+          navItems: AdminNavConfig.navItems,
+          onTabSelected: _onTabChanged,
+        ),
       ),
     );
   }

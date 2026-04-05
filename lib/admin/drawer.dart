@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guitercord/auth/service.dart'; // Ensure this path is correct
+import 'package:guitercord/auth/service.dart';
 
 class AdminDrawer extends StatelessWidget {
   final int selectedIndex;
@@ -18,83 +18,91 @@ class AdminDrawer extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Drawer(
-      child: Column(
-        children: [
-          // --- HEADER ---
-          DrawerHeader(
-            decoration: BoxDecoration(
-              color: theme.primaryColor.withOpacity(0.1),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.library_music_rounded,
-                    size: 40,
-                    color: theme.primaryColor,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "GUITERCORD",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                ],
+      child: SafeArea(
+        // Ensures content doesn't hit the status bar
+        child: Column(
+          children: [
+            DrawerHeader(
+              margin: EdgeInsets.zero,
+              decoration: BoxDecoration(
+                color: theme.primaryColor.withOpacity(0.1),
               ),
-            ),
-          ),
-
-          // --- NAVIGATION ITEMS ---
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.zero,
-              itemCount: navItems.length,
-              itemBuilder: (context, index) {
-                final item = navItems[index];
-                final isSelected = selectedIndex == index;
-
-                return ListTile(
-                  leading: Icon(
-                    item['icon'],
-                    color: isSelected ? theme.primaryColor : null,
-                  ),
-                  title: Text(
-                    item['label'],
-                    style: TextStyle(
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.library_music_rounded,
+                      size: 40,
+                      color: theme.primaryColor,
                     ),
-                  ),
-                  selected: isSelected,
-                  selectedTileColor: theme.primaryColor.withOpacity(0.05),
-                  onTap: () {
-                    onTabSelected(index);
-                    // Close drawer automatically on mobile
-                    if (MediaQuery.of(context).size.width <= 900) {
-                      Navigator.pop(context);
-                    }
-                  },
-                );
-              },
-            ),
-          ),
-
-          // --- LOGOUT SECTION ---
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-            title: const Text(
-              "Logout",
-              style: TextStyle(
-                color: Colors.redAccent,
-                fontWeight: FontWeight.bold,
+                    const SizedBox(height: 8),
+                    const Text(
+                      "GUITERCORD",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            onTap: () => _handleLogout(context),
-          ),
-          const SizedBox(height: 16),
-        ],
+            Expanded(
+              child: navItems.isEmpty
+                  ? const Center(child: Text("No items"))
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: navItems.length,
+                      itemBuilder: (context, index) {
+                        final item = navItems[index];
+                        final isSelected = selectedIndex == index;
+
+                        return ListTile(
+                          leading: Icon(
+                            item['icon'],
+                            color: isSelected ? theme.primaryColor : null,
+                          ),
+                          title: Text(
+                            item['label'],
+                            style: TextStyle(
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                          selected: isSelected,
+                          selectedTileColor: theme.primaryColor.withOpacity(
+                            0.05,
+                          ),
+                          onTap: () {
+                            onTabSelected(index);
+                            if (Scaffold.of(context).isDrawerOpen) {
+                              Navigator.pop(context);
+                            }
+                          },
+                        );
+                      },
+                    ),
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(
+                Icons.logout_rounded,
+                color: Colors.redAccent,
+              ),
+              title: const Text(
+                "Logout",
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onTap: () => _handleLogout(context),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }
