@@ -5,9 +5,9 @@ import 'package:guitercord/core/empty_state.dart';
 import 'package:guitercord/widget/card.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:guitercord/model/artist.dart';
-import 'package:guitercord/user/all_artist.dart';
-import 'package:guitercord/user/drawer.dart';
-import 'package:guitercord/user/search.dart';
+import 'package:guitercord/ui/user/all_artist.dart';
+import 'package:guitercord/ui/user/drawer.dart';
+import 'package:guitercord/ui/user/search.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback onThemeToggle;

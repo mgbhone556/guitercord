@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:guitercord/auth/service.dart';
+import 'package:guitercord/auth/register.dart';
+import 'package:guitercord/service/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,37 +11,43 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passController = TextEditingController();
-
+  late final TextEditingController _emailController;
+  late final TextEditingController _passController;
   bool _isLoading = false;
-  bool _isLogin = true; // Toggle between Login and Register
 
-  void _handleAuth() async {
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController();
+    _passController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passController.dispose();
+    super.dispose();
+  }
+
+  void _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    final service = AuthService();
-    final email = _emailController.text.trim();
-    final password = _passController.text.trim();
-
-    dynamic result;
-    if (_isLogin) {
-      result = await service.signInWithEmail(email, password);
-    } else {
-      result = await service.signUpWithEmail(email, password);
-    }
+    final result = await AuthService().signInWithEmail(
+      _emailController.text.trim(),
+      _passController.text.trim(),
+    );
 
     if (mounted) {
       setState(() => _isLoading = false);
       if (result == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Authentication Failed. Check your details."),
-          ),
-        );
+        _showError("Login Failed. Check your credentials.");
       }
     }
+  }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
@@ -51,85 +58,72 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.music_note_rounded,
-                    size: 80,
-                    color: Colors.blueAccent,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    "Guitercord",
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 48),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.music_note_rounded,
+                  size: 80,
+                  color: Colors.blueAccent,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  "Guitercord",
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 48),
 
-                  // EMAIL FIELD
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: "Email",
-                      prefixIcon: const Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(
+                    labelText: "Email",
+                    prefixIcon: Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (v) =>
+                      v!.contains('@') ? null : "Enter a valid email",
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _passController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: "Password",
+                    prefixIcon: Icon(Icons.lock_outline),
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (v) =>
+                      v!.length < 6 ? "Minimum 6 characters" : null,
+                ),
+                const SizedBox(height: 24),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.primaryColor,
+                      foregroundColor: Colors.white,
                     ),
-                    validator: (v) =>
-                        v!.contains('@') ? null : "Enter a valid email",
+                    onPressed: _isLoading ? null : _handleLogin,
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text("LOGIN"),
                   ),
-                  const SizedBox(height: 16),
+                ),
 
-                  // PASSWORD FIELD
-                  TextFormField(
-                    controller: _passController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: "Password",
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    validator: (v) =>
-                        v!.length < 6 ? "Minimum 6 characters" : null,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // MAIN ACTION BUTTON
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.primaryColor,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: _isLoading ? null : _handleAuth,
-                      child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : Text(_isLogin ? "LOGIN" : "CREATE ACCOUNT"),
+                TextButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const RegisterScreen(),
                     ),
                   ),
-
-                  // TOGGLE BUTTON
-                  TextButton(
-                    onPressed: () => setState(() => _isLogin = !_isLogin),
-                    child: Text(
-                      _isLogin
-                          ? "Don't have an account? Register"
-                          : "Already have an account? Login",
-                    ),
-                  ),
-                ],
-              ),
+                  child: const Text("Don't have an account? Register"),
+                ),
+              ],
             ),
           ),
         ),

@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:guitercord/model/artist.dart';
-import 'package:guitercord/user/cord.dart';
-import 'package:guitercord/user/detail.dart';
+import 'package:guitercord/ui/user/cord.dart';
+import 'package:guitercord/ui/user/detail.dart';
 
 class TrendingCard extends StatelessWidget {
   final String songName;

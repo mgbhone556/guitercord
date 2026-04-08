@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:guitercord/auth/auth_wrapper.dart';
 import 'package:guitercord/auth/login.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:guitercord/auth/service.dart';
+import 'package:guitercord/service/auth_service.dart';
 import 'package:guitercord/firebase_options.dart';
 
 void main() async {

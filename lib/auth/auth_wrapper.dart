@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
-import 'package:guitercord/admin/admin.dart';
+import 'package:guitercord/ui/admin/dashboard.dart';
 import 'package:guitercord/auth/login.dart';
-import 'package:guitercord/user/home.dart';
+import 'package:guitercord/ui/user/home.dart';
 
 class AuthWrapper extends StatefulWidget {
   final firebase_auth.User user;
@@ -20,7 +20,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<DocumentSnapshot>(
-      // Look up the user's document using their unique UID
       future: FirebaseFirestore.instance
           .collection('users')
           .doc(widget.user.uid)
@@ -32,7 +31,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
           );
         }
 
-        // If the document exists, check the role
         if (snapshot.hasData && snapshot.data!.exists) {
           String role = snapshot.data!.get('role') ?? 'user';
 
@@ -42,11 +40,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
             return HomeScreen(
               onThemeToggle: toggleTheme,
               isDarkMode: isDarkMode,
-            ); // Your normal mobile user home
+            );
           }
         }
 
-        // Fallback if something goes wrong
         return const LoginScreen();
       },
     );

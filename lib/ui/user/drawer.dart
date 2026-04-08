@@ -1,7 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:guitercord/user/favorite.dart';
+import 'package:guitercord/auth/logout.dart';
+import 'package:guitercord/ui/user/favorite.dart';
 import 'package:guitercord/model/artist.dart';
-import 'package:guitercord/auth/service.dart';
 
 class AppDrawer extends StatelessWidget {
   final bool isDarkMode;
@@ -17,36 +18,9 @@ class AppDrawer extends StatelessWidget {
     this.currentRoute = '/home',
   });
 
-  // --- Pro Logout Logic ---
-  void _handleLogout(BuildContext context) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text("Sign Out"),
-        content: const Text("Are you sure you want to log out of Guitercord?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
-            child: const Text("Logout"),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true && context.mounted) {
-      await AuthService().signOut();
-      // StreamBuilder in main.dart will handle the switch to LoginScreen
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final User? user = FirebaseAuth.instance.currentUser;
     final theme = Theme.of(context);
     final primaryColor = theme.primaryColor;
     final surfaceColor = isDarkMode
@@ -64,7 +38,7 @@ class AppDrawer extends StatelessWidget {
       child: SafeArea(
         child: Column(
           children: [
-            _buildProfileHeader(isDarkMode),
+            _buildProfileHeader(isDarkMode, user),
             const Divider(indent: 20, endIndent: 20, height: 1),
 
             Expanded(
@@ -109,16 +83,11 @@ class AppDrawer extends StatelessWidget {
                     title: "Settings",
                     onTap: () {},
                   ),
-                  _DrawerTile(
-                    icon: Icons.logout_rounded,
-                    title: "Logout",
-                    iconColor: Colors.redAccent,
-                    onTap: () => _handleLogout(context),
-                  ),
                 ],
               ),
             ),
-
+            const Divider(indent: 20, endIndent: 20),
+            const LogoutTile(), // <--- Your custom LogoutTile class
             // --- Theme Toggle Section ---
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -160,7 +129,7 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader(bool isDark) {
+  Widget _buildProfileHeader(bool isDark, dynamic user) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Row(
@@ -175,12 +144,12 @@ class AppDrawer extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Developer",
-                style: TextStyle(
-                  fontSize: 18,
+                user?.email ?? "Admin User",
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
+                  fontSize: 14,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
               const Text(
                 "Guitercord Pro",

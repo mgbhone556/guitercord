@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guitercord/admin/singer_service.dart';
+import 'package:guitercord/service/singer_service.dart';
 import 'package:guitercord/core/empty_state.dart';
 import 'package:guitercord/model/artist.dart';
 import 'package:guitercord/widget/list.dart'; // Your CustomListInput
