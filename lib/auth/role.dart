@@ -1,12 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:guitercord/ui/admin/dashboard.dart';
-import 'package:guitercord/auth/login.dart';
 import 'package:guitercord/ui/user/home.dart';
 
 class AuthWrapper extends StatefulWidget {
-  final firebase_auth.User user;
+  final User user;
   const AuthWrapper({super.key, required this.user});
 
   @override
@@ -15,15 +14,15 @@ class AuthWrapper extends StatefulWidget {
 
 class _AuthWrapperState extends State<AuthWrapper> {
   bool isDarkMode = false;
-
   void toggleTheme() => setState(() => isDarkMode = !isDarkMode);
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
           .collection('users')
           .doc(widget.user.uid)
-          .get(),
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -32,19 +31,15 @@ class _AuthWrapperState extends State<AuthWrapper> {
         }
 
         if (snapshot.hasData && snapshot.data!.exists) {
-          String role = snapshot.data!.get('role') ?? 'user';
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          String role = data['role'] ?? 'user';
 
-          if (role == 'admin') {
-            return const AdminDashboard();
-          } else {
-            return HomeScreen(
-              onThemeToggle: toggleTheme,
-              isDarkMode: isDarkMode,
-            );
-          }
+          return role == 'admin'
+              ? const AdminDashboard()
+              : HomeScreen(onThemeToggle: toggleTheme, isDarkMode: isDarkMode);
         }
 
-        return const LoginScreen();
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
     );
   }

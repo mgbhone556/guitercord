@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:guitercord/auth/register.dart';
 import 'package:guitercord/service/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -10,123 +9,189 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _emailController;
-  late final TextEditingController _passController;
   bool _isLoading = false;
+  bool _isAccepted = false; // Checkbox state
 
-  @override
-  void initState() {
-    super.initState();
-    _emailController = TextEditingController();
-    _passController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passController.dispose();
-    super.dispose();
-  }
-
-  void _handleLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+  void _handleGoogleLogin() async {
+    if (_isLoading || !_isAccepted) return;
 
     setState(() => _isLoading = true);
-    final result = await AuthService().signInWithEmail(
-      _emailController.text.trim(),
-      _passController.text.trim(),
-    );
 
-    if (mounted) {
-      setState(() => _isLoading = false);
-      if (result == null) {
-        _showError("Login Failed. Check your credentials.");
+    try {
+      final result = await AuthService().signInWithGoogle();
+
+      if (mounted && result == null) {
+        setState(() => _isLoading = false);
+        _showStyledError("Sign in cancelled or failed.");
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showStyledError("An unexpected error occurred.");
       }
     }
   }
 
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  void _showStyledError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(32),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                const Icon(
-                  Icons.music_note_rounded,
-                  size: 80,
-                  color: Colors.blueAccent,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  "Guitercord",
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 48),
-
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: "Email",
-                    prefixIcon: Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (v) =>
-                      v!.contains('@') ? null : "Enter a valid email",
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _passController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: "Password",
-                    prefixIcon: Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (v) =>
-                      v!.length < 6 ? "Minimum 6 characters" : null,
-                ),
-                const SizedBox(height: 24),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: _isLoading ? null : _handleLogin,
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text("LOGIN"),
-                  ),
-                ),
-
-                TextButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const RegisterScreen(),
-                    ),
-                  ),
-                  child: const Text("Don't have an account? Register"),
-                ),
-              ],
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // Background Aesthetic Circle
+          Positioned(
+            top: -100,
+            right: -50,
+            child: CircleAvatar(
+              radius: 150,
+              backgroundColor: Colors.blueAccent.withOpacity(0.05),
             ),
           ),
-        ),
+
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Column(
+                children: [
+                  const Spacer(flex: 2),
+
+                  // Brand Section
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blueAccent.withOpacity(0.1),
+                          blurRadius: 40,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.music_note_rounded,
+                      size: 80,
+                      color: Colors.blueAccent,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    "Guitercord",
+                    style: TextStyle(
+                      fontSize: 36,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -1,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "Your ultimate guitar chord library.",
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                  ),
+
+                  const Spacer(flex: 3),
+
+                  // Checkbox Row
+                  GestureDetector(
+                    onTap: () => setState(() => _isAccepted = !_isAccepted),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: Checkbox(
+                            value: _isAccepted,
+                            activeColor: Colors.blueAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            onChanged: (val) =>
+                                setState(() => _isAccepted = val ?? false),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
+                            "I agree to the Terms and Privacy Policy",
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Google Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 60,
+                    child: Opacity(
+                      opacity: _isAccepted ? 1.0 : 0.5,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                            color: Colors.grey.shade300,
+                            width: 1.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: (_isLoading || !_isAccepted)
+                            ? null
+                            : _handleGoogleLogin,
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.network(
+                                    'https://imagepng.org/wp-content/uploads/2019/08/google-icon.png',
+                                    height: 24,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    "Continue with Google",
+                                    style: TextStyle(
+                                      color: Colors.black87,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

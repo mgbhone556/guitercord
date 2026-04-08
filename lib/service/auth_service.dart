@@ -6,91 +6,61 @@ import 'package:google_sign_in/google_sign_in.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+
   Stream<User?> get userStatus => _auth.authStateChanges();
-  // Change your initialization line to this:
 
-  // If the error persists with the line above, try:
-  // final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
+  Future<void> _updateUserData(User user) async {
+    final userRef = _db.collection('users').doc(user.uid);
+    final doc = await userRef.get();
 
-  // Inside your signInWithGoogle method:
+    if (!doc.exists) {
+      await userRef.set({
+        'uid': user.uid,
+        'email': user.email,
+        'role': 'user',
+        'createdAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+  }
+
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      // 1. Initialize (Mandatory in v7+)
-      await GoogleSignIn.instance.initialize();
-
-      // 2. Trigger the login flow
-      final GoogleSignInAccount? googleUser = await GoogleSignIn.instance
+      await _googleSignIn.initialize();
+      final GoogleSignInAccount? googleUser = await _googleSignIn
           .authenticate();
       if (googleUser == null) return null;
 
-      // 3. Get Authentication (This now ONLY contains the idToken)
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
-
-      // 4. Get Authorization (This is where the accessToken now lives)
-      // You must define the scopes you are requesting access for
       final List<String> scopes = <String>['email', 'profile'];
-      final GoogleSignInClientAuthorization? authorization = await googleUser
-          .authorizationClient
+      final authorization = await googleUser.authorizationClient
           .authorizationForScopes(scopes);
 
-      // 5. Create the Firebase Credential
       final OAuthCredential credential = GoogleAuthProvider.credential(
         idToken: googleAuth.idToken,
-        // Access the token from the new authorization object
         accessToken: authorization?.accessToken,
       );
 
-      // 6. Sign in to Firebase
-      return await _auth.signInWithCredential(credential);
+      UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
+
+      if (userCredential.user != null) {
+        await _updateUserData(userCredential.user!);
+      }
+
+      return userCredential;
     } catch (e) {
       debugPrint("Google Sign-In Error: $e");
       return null;
     }
   }
 
-  Future<UserCredential?> signInWithEmail(String email, String password) async {
-    try {
-      return await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-    } catch (e) {
-      debugPrint("Login Error: $e");
-      return null;
-    }
-  }
-
-  Future<UserCredential?> signUpWithEmail(String email, String password) async {
-    try {
-      UserCredential credential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      await _db.collection('users').doc(credential.user!.uid).set({
-        'email': email,
-        'role': 'user',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      return credential;
-    } catch (e) {
-      debugPrint("Register Error: $e");
-      return null;
-    }
-  }
-
-  Future<void> signOut() async => await _auth.signOut();
-
-  Future<bool> sendPasswordReset(String email) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email);
-      return true;
-    } catch (e) {
-      debugPrint(e.toString());
-      return false;
-    }
+  // SIGN OUT (Clears both Firebase and Google sessions)
+  Future<void> signOut() async {
+    await _googleSignIn.signOut();
+    await _auth.signOut();
   }
 }

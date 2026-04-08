@@ -12,7 +12,20 @@
           "package_name": "com.example.guitercord"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "188389291755-s60m78rfi35eakqrsdjij7v0b7ahup90.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.guitercord",
+            "certificate_hash": "eada2718caa499382c42933cf272280bb7cf3e38"
+          }
+        },
+        {
+          "client_id": "188389291755-n6agcevpcmffn71119a2rin8ua1n02ne.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB5qs50pwcmm3HNT3ZAqc_kRLWc4dn7tTQ"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "188389291755-n6agcevpcmffn71119a2rin8ua1n02ne.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "188389291755-jf5fsupk7855bpk4hsf4e9420ki94mcs.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.guitercord"
+              }
+            }
+          ]
         }
       }
     }

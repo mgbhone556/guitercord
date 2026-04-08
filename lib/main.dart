@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-import 'package:guitercord/auth/auth_wrapper.dart';
+import 'package:guitercord/auth/role.dart';
 import 'package:guitercord/auth/login.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:guitercord/service/auth_service.dart';

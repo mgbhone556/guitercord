@@ -143,13 +143,18 @@ class AppDrawer extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                user?.email ?? "Admin User",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+              SizedBox(
+                width: 150, // Define how much space the text can take
+                child: Text(
+                  user?.email ?? "Admin User",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                  overflow: TextOverflow.ellipsis, // Adds the "..."
+                  maxLines: 1, // Ensures it stays on one line
+                  softWrap: false, // Prevents wrapping to a second line
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
               const Text(
                 "Guitercord Pro",
