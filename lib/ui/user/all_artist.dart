@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Add this
 import 'package:flutter/material.dart';
+import 'package:guitercord/model/song.dart';
 import 'package:guitercord/ui/user/detail.dart';
 import 'package:guitercord/model/artist.dart';
 import 'package:guitercord/core/empty_state.dart';
@@ -77,6 +78,7 @@ class AllArtistsPage extends StatelessWidget {
                   MaterialPageRoute(
                     builder: (_) => DetailScreen(
                       singer: singer,
+
                       heroTag: "popular-hero-${singer.name}",
                     ),
                   ),

@@ -1,108 +1,139 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class OverviewTab extends StatelessWidget {
-  const OverviewTab({super.key});
+class OverviewPage extends StatelessWidget {
+  const OverviewPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final double screenWidth = MediaQuery.of(context).size.width;
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "System Statistics",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Welcome back, Admin",
-          style: theme.textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+            // Grid ထဲမှာ Artist အရေအတွက်ရော ကျန်တဲ့ Stats တွေကိုပါ ပြပါမယ်
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.5,
+              children: [
+                // ၁။ စုစုပေါင်း User အရေအတွက်
+                _buildStatStream(
+                  collection: "users",
+                  label: "Total Users",
+                  icon: Icons.people_alt_rounded,
+                  color: Colors.blue,
+                ),
+
+                // ၂။ စုစုပေါင်း Artist အရေအတွက် (ဒီနေရာက သင်လိုချင်တဲ့အပိုင်းပါ)
+                _buildStatStream(
+                  collection:
+                      "artists", // Singer model နဲ့ ကိုက်ညီအောင် 'singers' လို့ သုံးထားပါတယ်
+                  label: "Artists",
+                  icon: Icons.mic_external_on,
+                  color: Colors.purple,
+                ),
+
+                // ၃။ စုစုပေါင်း Songs အရေအတွက်
+                _buildTotalSongsStat(),
+              ],
+            ),
+          ],
         ),
-        const SizedBox(height: 24),
-        Expanded(
-          child: GridView.count(
-            // Dynamic column count based on width
-            crossAxisCount: screenWidth > 1200
-                ? 4
-                : (screenWidth > 600 ? 2 : 1),
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: screenWidth > 1200 ? 1.3 : 1.5,
-            children: [
-              _StatCard(
-                title: "Total Chords",
-                value: "1,240",
-                icon: Icons.music_note,
-                color: Colors.blue,
-              ),
-              _StatCard(
-                title: "Active Users",
-                value: "856",
-                icon: Icons.people,
-                color: Colors.green,
-              ),
-              _StatCard(
-                title: "Pending Reviews",
-                value: "12",
-                icon: Icons.rate_review,
-                color: Colors.orange,
-              ),
-              _StatCard(
-                title: "App Crashes",
-                value: "0",
-                icon: Icons.bug_report,
-                color: Colors.red,
-              ),
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
-}
 
-class _StatCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
+  // Artist တစ်ဦးချင်းစီရဲ့ အောက်က songs collection အားလုံးကို ပေါင်းပြီး ရေတွက်တဲ့ function
+  Widget _buildTotalSongsStat() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collectionGroup('songs').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) return const Text("Error");
+        int totalSongs = snapshot.hasData ? snapshot.data!.docs.length : 0;
 
-  const _StatCard({
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
+        return _buildStatCard(
+          "Total Songs",
+          totalSongs.toString(),
+          Icons.music_note_rounded,
+          Colors.green,
+        );
+      },
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
+  // ရိုးရိုး collection (users သို့မဟုတ် singers) အရေအတွက်ကို ရေတွက်တဲ့ function
+  Widget _buildStatStream({
+    required String collection,
+    required String label,
+    required IconData icon,
+    required Color color,
+  }) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection(collection).snapshots(),
+      builder: (context, snapshot) {
+        // snapshot.data!.docs.length က ဖန်တီးထားသမျှ artist အရေအတွက်ကို ပြပေးမှာပါ
+        final count = snapshot.data?.docs.length ?? 0;
+        return _buildStatCard(label, count.toString(), icon, color);
+      },
+    );
+  }
+
+  // Card Design
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.withOpacity(0.1)),
+        borderRadius: BorderRadius.circular(15),
+        side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.all(16),
+        child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: color),
+              child: Icon(icon, color: color, size: 26),
             ),
-            const SizedBox(height: 12),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            const SizedBox(width: 12),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:guitercord/model/song.dart';
 import 'package:guitercord/ui/admin/dashboard.dart';
 import 'package:guitercord/ui/user/home.dart';
 
@@ -35,8 +36,18 @@ class _AuthWrapperState extends State<AuthWrapper> {
           String role = data['role'] ?? 'user';
 
           return role == 'admin'
-              ? const AdminDashboard()
-              : HomeScreen(onThemeToggle: toggleTheme, isDarkMode: isDarkMode);
+              ? const AdminHome()
+              : HomeScreen(
+                  onThemeToggle: toggleTheme,
+                  isDarkMode: isDarkMode,
+                  song: Song(
+                    id: null,
+                    title: "",
+                    chordsUsed: [],
+                    lyricsWithChords: [],
+                    albums: [],
+                  ),
+                );
         }
 
         return const Scaffold(body: Center(child: CircularProgressIndicator()));

@@ -7,8 +7,6 @@ class Singer {
   final String imageUrl;
   final Color accentColor;
   final String bio;
-  final List<String> popularSongs;
-  final List<String> albums;
 
   const Singer({
     this.id,
@@ -17,8 +15,6 @@ class Singer {
     required this.imageUrl,
     required this.accentColor,
     required this.bio,
-    required this.popularSongs,
-    required this.albums,
   });
 
   factory Singer.fromMap(Map<String, dynamic> map, String id) {
@@ -30,8 +26,6 @@ class Singer {
       // Converts Firestore hex string or int to Flutter Color
       accentColor: Color(map['accentColor'] ?? 0xFF6200EE),
       bio: map['bio'] ?? '',
-      popularSongs: List<String>.from(map['popularSongs'] ?? []),
-      albums: List<String>.from(map['albums'] ?? []),
     );
   }
   Map<String, dynamic> toMap() {
@@ -42,8 +36,6 @@ class Singer {
       // Store the color as an integer value (0xFF...)
       'accentColor': accentColor.value,
       'bio': bio,
-      'popularSongs': popularSongs,
-      'albums': albums,
     };
   }
 }

@@ -58,13 +58,13 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
                     // Match the local song name to a Singer in the database
                     Singer? foundSinger;
-                    try {
-                      foundSinger = allSingers.firstWhere(
-                        (s) => s.popularSongs.contains(songName),
-                      );
-                    } catch (e) {
-                      foundSinger = null;
-                    }
+                    // try {
+                    //   foundSinger = allSingers.firstWhere(
+                    //     (s) => s.popularSongs.contains(songName),
+                    //   );
+                    // } catch (e) {
+                    //   foundSinger = null;
+                    // }
 
                     if (foundSinger == null) return const SizedBox.shrink();
 

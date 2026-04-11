@@ -1,13 +1,22 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Required for HapticFeedback
 import 'package:guitercord/model/artist.dart';
+import 'package:guitercord/model/song.dart';
 import 'package:guitercord/ui/user/cord.dart';
 import 'package:guitercord/ui/user/detail.dart';
 
 class TrendingCard extends StatelessWidget {
   final String songName;
+  final Song song;
   final Singer singer;
-  const TrendingCard({super.key, required this.songName, required this.singer});
+
+  const TrendingCard({
+    super.key,
+    required this.songName,
+    required this.singer,
+    required this.song,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +24,14 @@ class TrendingCard extends StatelessWidget {
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              ChordViewScreen(songName: songName, singer: singer, songData: ''),
+          builder: (context) => ChordViewScreen(
+            songName: songName,
+            singer: singer,
+            // Fixed property names to match your Song model
+            songData: '',
+            lyricsData: song.lyricsWithChords, // Changed from song.lyrics
+            chordsUsed: song.chordsUsed,
+          ),
         ),
       ),
       child: Container(
@@ -92,14 +107,13 @@ class SingerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String heroTag = "hero-${singer.id}";
+
     return _PressedWrapper(
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => DetailScreen(
-            singer: singer,
-            heroTag: "popular-hero-${singer.name}",
-          ),
+          builder: (context) => DetailScreen(singer: singer, heroTag: heroTag),
         ),
       ),
       child: Container(
@@ -138,17 +152,27 @@ class SingerCard extends StatelessWidget {
               right: 0,
               child: Center(
                 child: Hero(
-                  tag: "hero-${singer.id}",
+                  tag: heroTag,
                   child: Container(
                     padding: const EdgeInsets.all(3),
                     decoration: const BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
                     ),
-                    child: CircleAvatar(
-                      radius: 42,
-                      backgroundImage: CachedNetworkImageProvider(
-                        singer.imageUrl,
+                    child: CachedNetworkImage(
+                      imageUrl: singer.imageUrl,
+                      imageBuilder: (context, imageProvider) => CircleAvatar(
+                        radius: 42,
+                        backgroundImage: imageProvider,
+                      ),
+                      placeholder: (context, url) => const CircleAvatar(
+                        radius: 42,
+                        backgroundColor: Colors.grey,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      errorWidget: (context, url, error) => const CircleAvatar(
+                        radius: 42,
+                        child: Icon(Icons.person),
                       ),
                     ),
                   ),
@@ -243,11 +267,16 @@ class SongTile extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  ChordViewScreen(songName: song, singer: singer, songData: ''),
+              builder: (context) => ChordViewScreen(
+                songName: song,
+                singer: singer,
+                songData:
+                    '', // If you have a list of Song objects, pass song.content here
+                lyricsData: const [],
+                chordsUsed: const [],
+              ),
             ),
           ).then((_) {
-            // When we come back, run the refresh function if it exists
             if (onReturn != null) onReturn!();
           });
         },
@@ -277,23 +306,29 @@ class _PressedWrapperState extends State<_PressedWrapper>
       vsync: this,
       duration: const Duration(milliseconds: 100),
     );
-    _scale = Tween<double>(begin: 1.0, end: 0.95).animate(_controller);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) => _controller.reverse(),
-      onTapCancel: () => _controller.reverse(),
-      onTap: widget.onTap,
-      child: ScaleTransition(scale: _scale, child: widget.child),
-    );
+    _scale = Tween<double>(
+      begin: 1.0,
+      end: 0.96,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) {
+        _controller.forward();
+        HapticFeedback.lightImpact(); // Modern haptic feel
+      },
+      onTapUp: (_) => _controller.reverse(),
+      onTapCancel: () => _controller.reverse(),
+      onTap: widget.onTap,
+      child: ScaleTransition(scale: _scale, child: widget.child),
+    );
   }
 }

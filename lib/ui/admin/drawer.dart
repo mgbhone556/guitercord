@@ -33,7 +33,8 @@ class AdminDrawer extends StatelessWidget {
                       radius: 30,
                       backgroundColor: Theme.of(context).primaryColor,
                       child: const Icon(
-                        Icons.person,
+                        Icons
+                            .admin_panel_settings_rounded, // Changed to admin icon
                         color: Colors.white,
                         size: 30,
                       ),
@@ -62,16 +63,32 @@ class AdminDrawer extends StatelessWidget {
 
             // --- Navigation Items ---
             ListTile(
-              leading: const Icon(Icons.dashboard),
+              leading: const Icon(Icons.dashboard_rounded),
               title: const Text("Overview"),
               selected: selectedIndex == 0,
-              onTap: () => onTabSelected(0),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                onTabSelected(0);
+              },
             ),
             ListTile(
-              leading: const Icon(Icons.person),
+              leading: const Icon(Icons.people_rounded),
               title: const Text("Artists"),
               selected: selectedIndex == 2,
-              onTap: () => onTabSelected(2),
+              onTap: () {
+                Navigator.pop(context);
+                onTabSelected(2);
+              },
+            ),
+            // NEW: Added Songs/Chords Management Tab
+            ListTile(
+              leading: const Icon(Icons.music_note_rounded),
+              title: const Text("Manage Chords"),
+              selected: selectedIndex == 3, // Assigned index 3 for Chords
+              onTap: () {
+                Navigator.pop(context);
+                onTabSelected(3);
+              },
             ),
 
             const Spacer(),

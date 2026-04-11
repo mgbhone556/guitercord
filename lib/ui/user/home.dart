@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:guitercord/core/empty_state.dart';
+import 'package:guitercord/model/song.dart';
 import 'package:guitercord/widget/card.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:guitercord/model/artist.dart';
@@ -12,11 +13,13 @@ import 'package:guitercord/ui/user/search.dart';
 class HomeScreen extends StatefulWidget {
   final VoidCallback onThemeToggle;
   final bool isDarkMode;
+  final Song song;
 
   const HomeScreen({
     super.key,
     required this.onThemeToggle,
     required this.isDarkMode,
+    required this.song,
   });
 
   @override
@@ -50,27 +53,20 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
+          // ... inside your _HomeScreenState build method
+
+          // --- 1. Popular Artists Section ---
           StreamBuilder<QuerySnapshot>(
+            // FIX: Changed 'singers' to 'artists' to match your Admin Panel
             stream: FirebaseFirestore.instance
-                .collection('singers')
+                .collection('artists')
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return SliverToBoxAdapter(child: _buildHorizontalShimmer());
               }
 
-              final singers =
-                  snapshot.data?.docs
-                      .map(
-                        (doc) => Singer.fromMap(
-                          doc.data() as Map<String, dynamic>,
-                          doc.id,
-                        ),
-                      )
-                      .toList() ??
-                  [];
-
-              if (singers.isEmpty) {
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                 return const SliverToBoxAdapter(
                   child: EmptyState(
                     isDark: false,
@@ -81,6 +77,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               }
 
+              final singers = snapshot.data!.docs
+                  .map(
+                    (doc) => Singer.fromMap(
+                      doc.data() as Map<String, dynamic>,
+                      doc.id,
+                    ),
+                  )
+                  .toList();
+
               return SliverToBoxAdapter(
                 child: _buildArtistsHorizontalList(singers),
               );
@@ -89,9 +94,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
           _buildSectionHeader("Trending Now"),
 
+          // --- 2. Trending Now Section ---
           StreamBuilder<QuerySnapshot>(
+            // FIX: Changed 'singers' to 'artists'
             stream: FirebaseFirestore.instance
-                .collection('singers')
+                .collection('artists')
+                .limit(8) // Limit trending to top 8
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -131,14 +139,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     childAspectRatio: 0.85,
                   ),
                   delegate: SliverChildBuilderDelegate((context, index) {
-                    final singer = singers[index % singers.length];
-                    final songName = singer.popularSongs.isNotEmpty
-                        ? singer.popularSongs[index %
-                              singer.popularSongs.length]
-                        : "New Release";
+                    final singer = singers[index];
+                    // Display the first popular song or a fallback
+                    // final songName = singer.popularSongs.isNotEmpty
+                    //     ? singer.popularSongs[0]
+                    //     : "Top Track";
 
-                    return TrendingCard(songName: songName, singer: singer);
-                  }, childCount: singers.length < 8 ? singers.length : 8),
+                    return TrendingCard(
+                      song: Song(
+                        id: null,
+                        title: "",
+                        chordsUsed: [],
+                        lyricsWithChords: [],
+                        albums: [],
+                      ),
+                      singer: singer,
+                      songName: 'Top Track',
+                    );
+                  }, childCount: singers.length),
                 ),
               );
             },

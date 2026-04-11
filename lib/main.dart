@@ -1,10 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:guitercord/auth/role.dart';
 import 'package:guitercord/auth/login.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:guitercord/service/auth_service.dart';
 import 'package:guitercord/firebase_options.dart';
 
 void main() async {
@@ -29,48 +27,70 @@ class _ChordAppState extends State<ChordApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: isDarkMode ? _darkTheme : _lightTheme,
-      // ... inside your ChordApp build method ...
-      home: StreamBuilder<firebase_auth.User?>(
-        stream: AuthService().userStatus,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-
-          if (snapshot.hasData) {
-            // Pass the logged-in user to the wrapper to check their role
-            return AuthWrapper(user: snapshot.data!);
-          }
-
-          return const LoginScreen();
-        },
-      ),
+      title: 'Guitar Chord App',
+      // ThemeMode ကို သုံးတာက ပိုပြီး Stable ဖြစ်ပါတယ်
+      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      theme: _lightTheme,
+      darkTheme: _darkTheme,
+      home: const AuthEntryGate(),
     );
   }
-
-  // Define themes here
-  final ThemeData _darkTheme = ThemeData.dark().copyWith(
-    scaffoldBackgroundColor: const Color(0xFF0A0A0F),
-    primaryColor: const Color(0xFF8E54E9),
-    cardColor: const Color(0xFF18161F),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      centerTitle: true,
-    ),
-  );
-
-  final ThemeData _lightTheme = ThemeData.light().copyWith(
-    scaffoldBackgroundColor: const Color(0xFFF8F9FA),
-    primaryColor: const Color(0xFF6200EE),
-    cardColor: Colors.white,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      centerTitle: true,
-    ),
-  );
 }
+
+// Auth Logic ကို သီးသန့် Widget ခွဲထုတ်လိုက်တာက Build Cycle ကို ပိုမြန်စေပါတယ်
+class AuthEntryGate extends StatelessWidget {
+  const AuthEntryGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<firebase_auth.User?>(
+      // AuthService ထက်စာရင် FirebaseAuth ရဲ့ standard stream ကို တိုက်ရိုက်သုံးတာ ပိုစိတ်ချရပါတယ်
+      stream: firebase_auth.FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // Loading ဖြစ်နေချိန်မှာ အမည်းရောင်မဖြစ်အောင် White Background ထားပါတယ်
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            backgroundColor: Colors.white,
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasData && snapshot.data != null) {
+          // Logged in ဖြစ်ရင် Role စစ်တဲ့ AuthWrapper ဆီသွားမယ်
+          return AuthWrapper(user: snapshot.data!);
+        }
+
+        // Login မဝင်ရသေးရင် LoginScreen ဆီသွားမယ်
+        return const LoginScreen();
+      },
+    );
+  }
+}
+
+// --- Themes Setup ---
+
+final ThemeData _lightTheme = ThemeData(
+  useMaterial3: true,
+  brightness: Brightness.light,
+  colorSchemeSeed: const Color(0xFF6200EE),
+  scaffoldBackgroundColor: Colors.white,
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFF6200EE),
+    foregroundColor: Colors.white,
+    elevation: 0,
+    centerTitle: true,
+  ),
+);
+
+final ThemeData _darkTheme = ThemeData(
+  useMaterial3: true,
+  brightness: Brightness.dark,
+  colorSchemeSeed: const Color(0xFF8E54E9),
+  scaffoldBackgroundColor: const Color(0xFF121212), // Standard Material Dark
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFF1F1B24),
+    foregroundColor: Colors.white,
+    elevation: 0,
+    centerTitle: true,
+  ),
+);

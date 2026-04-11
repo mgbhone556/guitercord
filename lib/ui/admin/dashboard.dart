@@ -1,94 +1,55 @@
-import 'package:cloud_firestore/cloud_firestore.dart'; // Standard for user data
 import 'package:flutter/material.dart';
 import 'package:guitercord/ui/admin/drawer.dart';
+import 'package:guitercord/ui/admin/artist_list.dart';
+import 'package:guitercord/ui/admin/song_create_with_cord.dart';
+import 'overview.dart';
+import 'artist_create.dart';
 
-class AdminDashboard extends StatefulWidget {
-  const AdminDashboard({super.key});
+class AdminHome extends StatefulWidget {
+  const AdminHome({super.key});
 
   @override
-  State<AdminDashboard> createState() => _AdminDashboardState();
+  State<AdminHome> createState() => _AdminHomeState();
 }
 
-class _AdminDashboardState extends State<AdminDashboard> {
-  int _selectedIndex = 0;
+class _AdminHomeState extends State<AdminHome> {
+  int selectedIndex = 0;
+
+  // AdminHome ထဲက _getPage logic ကို ဒီလိုပြင်ပါ
+  Widget _getPage() {
+    switch (selectedIndex) {
+      case 0:
+        return const OverviewPage();
+      case 2:
+        return const ArtistPage();
+      case 3:
+        // case 3 မှာ Artist ရွေးတဲ့ Page ကိုပဲ ပြပါ
+        return const ManageArtistForSongPage();
+      default:
+        return const OverviewPage();
+    }
+  }
+
+  void _onTabSelected(int index) {
+    print("DEBUG: Tab selected: $index");
+    setState(() {
+      selectedIndex = index;
+    });
+    // Drawer ပိတ်တဲ့အချိန် error မတက်အောင် canPop စစ်ပါတယ်
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Admin Panel")),
       drawer: AdminDrawer(
-        selectedIndex: _selectedIndex,
-        onTabSelected: (index) {
-          setState(() => _selectedIndex = index);
-          Navigator.pop(context);
-        },
+        selectedIndex: selectedIndex,
+        onTabSelected: _onTabSelected,
       ),
-      body: _buildBody(),
-    );
-  }
-
-  Widget _buildBody() {
-    switch (_selectedIndex) {
-      case 0:
-        return _buildOverview();
-      default:
-        return const Center(child: Text("Coming Soon"));
-    }
-  }
-
-  Widget _buildOverview() {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Dashboard Statistics",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-
-          // --- Total Users Card ---
-          StreamBuilder<QuerySnapshot>(
-            // Replace 'users' with your actual collection name
-            stream: FirebaseFirestore.instance.collection('users').snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) return const Text("Error loading data");
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              }
-
-              // The magic line: count the number of documents in the collection
-              int totalUsers = snapshot.data?.docs.length ?? 0;
-
-              return Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
-                  leading: const CircleAvatar(
-                    backgroundColor: Colors.blueAccent,
-                    child: Icon(Icons.people, color: Colors.white),
-                  ),
-                  title: const Text("Total Registered Users"),
-                  trailing: Text(
-                    "$totalUsers",
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text("Admin Panel")),
+      body: _getPage(),
     );
   }
 }
