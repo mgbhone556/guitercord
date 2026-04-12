@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:guitercord/core/empty_state.dart';
 import 'package:guitercord/model/song.dart';
-import 'package:guitercord/ui/user/cord.dart';
+import 'package:guitercord/ui/user/detail.dart';
 import 'package:guitercord/widget/card.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:guitercord/model/singer.dart';
@@ -137,43 +137,40 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final singer = singers[index];
+                    // Unique tag for Trending section to avoid Hero conflicts
+                    final String trendingHeroTag = "trending-${singer.id}";
 
-                    return GestureDetector(
+                    return TrendingCard(
+                      singer: singer,
+                      songName: singer.genre.toUpperCase(),
+                      // Pass the song title to display in the card
+                      // We pass a placeholder song object because TrendingCard expects one
+                      song: Song(
+                        id: '',
+                        title: '',
+                        chordsUsed: [],
+                        lyricsWithChords: [],
+                        albums: [],
+                        singerId: '',
+                      ),
+                      // FIX: Navigate to DetailScreen where songs/cords are actually loaded
                       onTap: () {
-                        // We map the artist data into a format ChordViewScreen can display
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ChordViewScreen(
-                              songName: "Popular Track",
+                            builder: (context) => DetailScreen(
                               singer: singer,
-                              lyricsData:
-                                  const [], // If artist doc doesn't have lyrics, pass empty
-                              chordsUsed:
-                                  const [], // If artist doc doesn't have chords, pass empty
-                              songData: "",
+                              heroTag: trendingHeroTag,
                             ),
                           ),
                         );
                       },
-                      child: TrendingCard(
-                        song: Song(
-                          id: singer.id,
-                          title: "Top Tracks",
-                          chordsUsed: [],
-                          lyricsWithChords: [],
-                          albums: [],
-                        ),
-                        singer: singer,
-                        songName: singer.name,
-                      ),
                     );
                   }, childCount: singers.length),
                 ),
               );
             },
           ),
-
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),

@@ -5,21 +5,27 @@ class Song {
   final List<String> chordsUsed;
   final List<Map<String, String>> lyricsWithChords;
 
+  // ✅ ADD THIS
+  final String singerId;
+
   Song({
     this.id,
     required this.title,
     required this.chordsUsed,
     required this.lyricsWithChords,
     required this.albums,
+    required this.singerId,
   });
 
-  // Firebase မှာ သိမ်းတဲ့အခါ သုံးဖို့ (albums ပါ ထည့်သိမ်းရပါမယ်)
   Map<String, dynamic> toMap() {
     return {
       'title': title,
       'chordsUsed': chordsUsed,
       'lyricsWithChords': lyricsWithChords,
-      'albums': albums, // ဒါလေး ထည့်ပေးပါ
+      'albums': albums,
+
+      // ✅ ADD THIS
+      'singerId': singerId,
     };
   }
 
@@ -29,11 +35,12 @@ class Song {
       title: map['title'] ?? 'Untitled',
       chordsUsed: List<String>.from(map['chordsUsed'] ?? []),
       lyricsWithChords: (map['lyricsWithChords'] as List? ?? [])
-          .map(
-            (item) => Map<String, String>.from(item as Map),
-          ) // Cast to Map first
+          .map((item) => Map<String, String>.from(item as Map))
           .toList(),
       albums: List<String>.from(map['albums'] ?? []),
+
+      // ✅ ADD THIS
+      singerId: map['singerId'] ?? '',
     );
   }
 }

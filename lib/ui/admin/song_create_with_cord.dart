@@ -244,12 +244,13 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
             .toList(),
         // ဒီမှာ singer.id ကို သေချာထည့်ပေးပါ (ဒါမှ song က artist နဲ့ link ဖြစ်မှာပါ)
         albums: [widget.singer.id!],
+        singerId: '',
       );
 
       if (_isEditing && _editingSongId != null) {
         // Edit Mode
         await FirebaseFirestore.instance
-            .collection('singers')
+            .collection('artists')
             .doc(widget.singer.id)
             .collection('songs')
             .doc(_editingSongId)

@@ -46,6 +46,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
                     chordsUsed: [],
                     lyricsWithChords: [],
                     albums: [],
+                    singerId: '',
                   ),
                 );
         }

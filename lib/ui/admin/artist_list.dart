@@ -59,7 +59,7 @@ class ManageArtistForSongPage extends StatelessWidget {
                       Text(singer.genre),
                       StreamBuilder<QuerySnapshot>(
                         stream: FirebaseFirestore.instance
-                            .collection('singers')
+                            .collection('artists')
                             .doc(singer.id)
                             .collection('songs')
                             .snapshots(),
@@ -91,6 +91,7 @@ class ManageArtistForSongPage extends StatelessWidget {
                             chordsUsed: [],
                             lyricsWithChords: [],
                             albums: [],
+                            singerId: '',
                           ),
                         ),
                       ),

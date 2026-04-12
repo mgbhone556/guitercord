@@ -22,7 +22,7 @@ class AdminChordHistoryPage extends StatelessWidget {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('singers')
+            .collection('artists')
             .doc(singer.id)
             .collection('songs')
             .snapshots(),
@@ -127,7 +127,7 @@ class AdminChordHistoryPage extends StatelessWidget {
 
     if (confirm) {
       await FirebaseFirestore.instance
-          .collection('singers')
+          .collection('artists')
           .doc(singerId)
           .collection('songs')
           .doc(song.id)

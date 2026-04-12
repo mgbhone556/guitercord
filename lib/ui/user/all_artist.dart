@@ -39,7 +39,7 @@ class AllArtistsPage extends StatelessWidget {
       ),
       // --- PRO CRUD: Real-time Stream from Firestore ---
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('singers').snapshots(),
+        stream: FirebaseFirestore.instance.collection('artists').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text("Something went wrong"));

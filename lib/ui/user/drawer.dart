@@ -59,13 +59,17 @@ class AppDrawer extends StatelessWidget {
                     title: "My Library",
                     isSelected: currentRoute == '/favorites',
                     onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FavoritesPage(),
-                        ),
-                      );
+                      Navigator.pop(context); // Drawer ကို အရင်ပိတ်ပါ
+
+                      // လက်ရှိရောက်နေတဲ့ Page က Favorites ဖြစ်နေရင် ထပ်သွားစရာမလိုအောင် စစ်ပါ
+                      if (currentRoute != '/favorites') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const FavoritesPage(),
+                          ),
+                        );
+                      }
                     },
                   ),
                   _DrawerTile(

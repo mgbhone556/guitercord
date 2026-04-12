@@ -12,18 +12,15 @@ class FavoritesPage extends StatefulWidget {
   @override
   State<FavoritesPage> createState() => _FavoritesPageState();
 }
-// ... (imports remain the same)
 
 class _FavoritesPageState extends State<FavoritesPage> {
-  void _refresh() => setState(() {});
-
   @override
   Widget build(BuildContext context) {
-    final List<String> favoriteNames = FavoritesManager.getFavoriteSongs();
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final List<String> favoriteNames = FavoritesManager.getFavoriteSongs()
+        .map((e) => e.trim().toLowerCase())
+        .toList();
 
-    // DEBUG: Check your console to see if this list is empty!
-    debugPrint("Current Favorites in Manager: $favoriteNames");
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -39,18 +36,21 @@ class _FavoritesPageState extends State<FavoritesPage> {
                   .collectionGroup('songs')
                   .snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.hasError)
+                if (snapshot.hasError) {
                   return Center(child: Text("Error: ${snapshot.error}"));
-                if (!snapshot.hasData)
-                  return const Center(child: CircularProgressIndicator());
+                }
 
-                // Robust filtering: compare trimmed and lowercase strings
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
                 final favoriteDocs = snapshot.data!.docs.where((doc) {
-                  final title =
-                      doc['title']?.toString().trim().toLowerCase() ?? "";
-                  return favoriteNames.any(
-                    (fav) => fav.trim().toLowerCase() == title,
-                  );
+                  final data = doc.data() as Map<String, dynamic>;
+                  final String title = (data['title'] ?? "")
+                      .toString()
+                      .trim()
+                      .toLowerCase();
+                  return favoriteNames.contains(title);
                 }).toList();
 
                 if (favoriteDocs.isEmpty) {
@@ -62,64 +62,90 @@ class _FavoritesPageState extends State<FavoritesPage> {
                   itemCount: favoriteDocs.length,
                   itemBuilder: (context, index) {
                     final doc = favoriteDocs[index];
+
                     final song = Song.fromMap(
                       doc.data() as Map<String, dynamic>,
                       doc.id,
                     );
 
+                    String singerId = "";
+                    try {
+                      singerId = doc.reference.parent.parent!.id;
+                    } catch (e) {
+                      singerId = "unknown";
+                    }
+
                     return FutureBuilder<DocumentSnapshot>(
                       future: FirebaseFirestore.instance
-                          .collection('singers')
-                          .doc(doc.reference.parent.parent!.id)
+                          .collection('artists')
+                          .doc(singerId)
                           .get(),
                       builder: (context, singerSnap) {
-                        if (!singerSnap.hasData)
-                          return const SizedBox(height: 90);
+                        String nameOfSinger = "Loading...";
+                        Color colorOfSinger = Colors.blueGrey;
+                        Singer? loadedSinger;
 
-                        final singerData =
-                            singerSnap.data!.data() as Map<String, dynamic>?;
-                        if (singerData == null) return const SizedBox();
-
-                        final singer = Singer.fromMap(
-                          singerData,
-                          singerSnap.data!.id,
-                        );
-
+                        if (singerSnap.hasData && singerSnap.data!.exists) {
+                          loadedSinger = Singer.fromMap(
+                            singerSnap.data!.data() as Map<String, dynamic>,
+                            singerSnap.data!.id,
+                          );
+                          nameOfSinger = loadedSinger.name;
+                          colorOfSinger = loadedSinger.accentColor;
+                        }
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
                           child: ListTile(
-                            leading: const CircleAvatar(
-                              child: Icon(Icons.music_note),
-                            ),
-                            title: Text(
-                              song.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(singer.name),
-                            trailing: const Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                            ),
                             onTap: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChordViewScreen(
-                                    songName: song.title,
-                                    singer: singer,
-                                    lyricsData: song.lyricsWithChords,
-                                    chordsUsed: song.chordsUsed,
-                                    songData: '',
+                              debugPrint("==== FAVORITE CLICKED ====");
+                              debugPrint("Song: ${song.title}");
+                              debugPrint("SingerId: $singerId");
+
+                              try {
+                                final singerDoc = await FirebaseFirestore
+                                    .instance
+                                    .collection("singers")
+                                    .doc(singerId)
+                                    .get();
+
+                                if (!singerDoc.exists) {
+                                  debugPrint("❌ Singer document not found!");
+                                  return;
+                                }
+
+                                final singer = Singer.fromMap(
+                                  singerDoc.data() as Map<String, dynamic>,
+                                  singerDoc.id,
+                                );
+
+                                debugPrint("✅ Singer Loaded: ${singer.name}");
+                                debugPrint("✅ Navigating to chord page...");
+
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChordViewScreen(
+                                      songName: song.title,
+                                      singer: singer,
+                                      lyricsData: song.lyricsWithChords,
+                                      chordsUsed: song.chordsUsed,
+                                      songData: '',
+                                    ),
                                   ),
-                                ),
-                              );
-                              _refresh(); // Refresh when coming back in case they unfavorited it
+                                );
+                              } catch (e) {
+                                debugPrint("❌ ERROR loading singer: $e");
+                              }
                             },
+
+                            leading: CircleAvatar(
+                              child: const Icon(Icons.music_note),
+                            ),
+                            title: Text(song.title),
+                            subtitle: const Text("Tap to open chords"),
                           ),
                         );
                       },

@@ -10,31 +10,37 @@ class TrendingCard extends StatelessWidget {
   final String songName;
   final Song song;
   final Singer singer;
+  final VoidCallback? onTap; // Added optional onTap
 
   const TrendingCard({
     super.key,
     required this.songName,
     required this.singer,
     required this.song,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return _PressedWrapper(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChordViewScreen(
-              songName: songName,
-              singer: singer,
-              songData: '', // Pass any extra metadata string here if needed
-              lyricsData: song.lyricsWithChords,
-              chordsUsed: song.chordsUsed,
-            ),
-          ),
-        );
-      },
+      onTap:
+          onTap ??
+          () {
+            // Default behavior: Go to Chord View
+            // Note: This only works if 'song' has lyrics and chords!
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChordViewScreen(
+                  songName: songName,
+                  singer: singer,
+                  songData: '',
+                  lyricsData: song.lyricsWithChords,
+                  chordsUsed: song.chordsUsed,
+                ),
+              ),
+            );
+          },
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -51,7 +57,6 @@ class TrendingCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Background Gradient using Singer's accent color
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -76,7 +81,7 @@ class TrendingCard extends StatelessWidget {
                     ),
                     const Spacer(),
                     Text(
-                      songName,
+                      singer.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -86,7 +91,7 @@ class TrendingCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      singer.name,
+                      songName,
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.6),
                         fontSize: 12,
