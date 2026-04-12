@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:guitercord/model/artist.dart';
+import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
 import 'package:guitercord/ui/admin/song_create_with_cord.dart';
 

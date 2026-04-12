@@ -3,7 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import 'package:guitercord/model/artist.dart';
+import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
 import 'package:guitercord/ui/user/cord.dart';
 // ... (ကျန်တဲ့ import တွေ အရင်အတိုင်းထားပါ)
@@ -202,15 +202,12 @@ class DetailScreen extends StatelessWidget {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ChordViewScreen(
+                                      // Use currentSong instead of song
                                       songName: currentSong.title,
                                       singer: singer,
-                                      lyricsData: [],
+                                      lyricsData: currentSong.lyricsWithChords,
                                       chordsUsed: currentSong.chordsUsed,
                                       songData: '',
-
-                                      // Chords Used တွေကို String list ကနေ string ပြန်ပြောင်းပေးတာဖြစ်စေ၊
-                                      // lyricsWithChords ထဲက data ကို သုံးတာဖြစ်စေ လုပ်ရပါမယ်။
-                                      // ဒီမှာတေó သင့် ChordParser က လက်ခံနိóငِတလည្ិသည့် format ဖြစ်အောင် lyricsWithChords ကို ပို့ပေးပါမယ်။
                                     ),
                                   ),
                                 );

@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:guitercord/model/artist.dart'; // Adjust path as needed
+import 'package:guitercord/model/singer.dart'; // Adjust path as needed
 
 class ArtistPage extends StatefulWidget {
   const ArtistPage({super.key});

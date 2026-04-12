@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:guitercord/core/chord_parser.dart';
-import 'package:guitercord/model/artist.dart';
+import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/provider/favorites_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ChordViewScreen extends StatefulWidget {
   final String songName;
   final Singer singer;
-  final List<Map<String, dynamic>> lyricsData; // Admin ကပို့တဲ့ list format
+  final List<Map<String, String>> lyricsData;
   final List<String> chordsUsed;
 
   const ChordViewScreen({
@@ -24,9 +23,107 @@ class ChordViewScreen extends StatefulWidget {
 }
 
 class _ChordViewScreenState extends State<ChordViewScreen> {
-  // ... (initState, dispose, toggleFavorite, shareSong တွေက အရင်အတိုင်းပဲ ထားပါ)
+  late bool _isFavorited;
 
-  // Chords Used list ကို ပြပေးတဲ့ UI
+  @override
+  void initState() {
+    super.initState();
+    _isFavorited = FavoritesManager.isFavorite(widget.songName);
+  }
+
+  void _toggleFavorite() {
+    setState(() {
+      _isFavorited = !_isFavorited;
+      FavoritesManager.toggle(widget.songName);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _isFavorited ? "Added to Favorites" : "Removed from Favorites",
+        ),
+        duration: const Duration(milliseconds: 800),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _shareSong() {
+    StringBuffer shareText = StringBuffer();
+    shareText.writeln("${widget.songName} - ${widget.singer.name}\n");
+
+    for (var line in widget.lyricsData) {
+      if (line['chord']?.isNotEmpty ?? false) {
+        shareText.write("[${line['chord']}] ");
+      }
+      shareText.writeln("${line['text']}");
+    }
+    shareText.writeln("\nShared from GuitarCord App");
+    Share.share(shareText.toString());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.songName,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              widget.singer.name,
+              style: TextStyle(fontSize: 13, color: widget.singer.accentColor),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isFavorited ? Icons.favorite : Icons.favorite_border,
+              color: _isFavorited ? Colors.red : null,
+            ),
+            onPressed: _toggleFavorite,
+          ),
+          IconButton(
+            icon: const Icon(Icons.share_outlined),
+            onPressed: _shareSong,
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Chords Used",
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: widget.chordsUsed
+                    .map((c) => _buildChordBox(c, widget.singer.accentColor))
+                    .toList(),
+              ),
+            ),
+            const Divider(height: 40),
+            _buildLyricsAndChords(),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildChordBox(String name, Color color) {
     return Container(
       width: 55,
@@ -54,28 +151,24 @@ class _ChordViewScreenState extends State<ChordViewScreen> {
     );
   }
 
-  // Chords နဲ့ Lyrics ကို တစ်ကြောင်းချင်းစီ ပြပေးမယ့် UI
   Widget _buildLyricsAndChords() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: widget.lyricsData.map((line) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 15),
+          padding: const EdgeInsets.only(bottom: 18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Chord ရှိရင် ပြမယ်
-              if (line['chord'] != null && line['chord']!.toString().isNotEmpty)
+              if (line['chord']?.isNotEmpty ?? false)
                 Text(
-                  line['chord']!.toString(),
+                  line['chord']!,
                   style: TextStyle(
                     color: widget.singer.accentColor,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    letterSpacing: 1.2,
                   ),
                 ),
-              // Lyric စာသား
               Text(
                 line['text'] ?? "",
                 style: const TextStyle(fontSize: 17, height: 1.5),
@@ -84,73 +177,6 @@ class _ChordViewScreenState extends State<ChordViewScreen> {
           ),
         );
       }).toList(),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.songName,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              widget.singer.name,
-              style: TextStyle(fontSize: 13, color: widget.singer.accentColor),
-            ),
-          ],
-        ),
-        actions: [/* Favorite & Share Buttons အရင်အတိုင်းထားပါ */],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Chords Used",
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: widget.chordsUsed
-                    .map((c) => _buildChordBox(c, widget.singer.accentColor))
-                    .toList(),
-              ),
-            ),
-            const Divider(height: 40),
-            const Text(
-              "Lyrics & Chords",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-
-            // Magic Area: ဒီနေရာမှာ Data တွေပေါ်လာမှာပါ
-            _buildLyricsAndChords(),
-
-            const SizedBox(height: 40),
-            Center(
-              child: Text(
-                "Enjoy playing!",
-                style: TextStyle(
-                  fontStyle: FontStyle.italic,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

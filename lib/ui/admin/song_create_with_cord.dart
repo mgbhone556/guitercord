@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:guitercord/model/artist.dart';
+import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
 import 'package:guitercord/service/singer_service.dart';
 import 'package:guitercord/ui/admin/cord_history.dart';
@@ -249,7 +249,7 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
       if (_isEditing && _editingSongId != null) {
         // Edit Mode
         await FirebaseFirestore.instance
-            .collection('artists')
+            .collection('singers')
             .doc(widget.singer.id)
             .collection('songs')
             .doc(_editingSongId)

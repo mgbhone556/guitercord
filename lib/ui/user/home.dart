@@ -3,9 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:guitercord/core/empty_state.dart';
 import 'package:guitercord/model/song.dart';
+import 'package:guitercord/ui/user/cord.dart';
 import 'package:guitercord/widget/card.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:guitercord/model/artist.dart';
+import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/ui/user/all_artist.dart';
 import 'package:guitercord/ui/user/drawer.dart';
 import 'package:guitercord/ui/user/search.dart';
@@ -53,11 +54,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // ... inside your _HomeScreenState build method
-
           // --- 1. Popular Artists Section ---
           StreamBuilder<QuerySnapshot>(
-            // FIX: Changed 'singers' to 'artists' to match your Admin Panel
             stream: FirebaseFirestore.instance
                 .collection('artists')
                 .snapshots(),
@@ -94,12 +92,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
           _buildSectionHeader("Trending Now"),
 
-          // --- 2. Trending Now Section ---
+          // --- 2. Trending Now Section (Fixed Navigation) ---
           StreamBuilder<QuerySnapshot>(
-            // FIX: Changed 'singers' to 'artists'
             stream: FirebaseFirestore.instance
                 .collection('artists')
-                .limit(8) // Limit trending to top 8
+                .limit(8)
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -140,21 +137,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final singer = singers[index];
-                    // Display the first popular song or a fallback
-                    // final songName = singer.popularSongs.isNotEmpty
-                    //     ? singer.popularSongs[0]
-                    //     : "Top Track";
 
-                    return TrendingCard(
-                      song: Song(
-                        id: null,
-                        title: "",
-                        chordsUsed: [],
-                        lyricsWithChords: [],
-                        albums: [],
+                    return GestureDetector(
+                      onTap: () {
+                        // We map the artist data into a format ChordViewScreen can display
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChordViewScreen(
+                              songName: "Popular Track",
+                              singer: singer,
+                              lyricsData:
+                                  const [], // If artist doc doesn't have lyrics, pass empty
+                              chordsUsed:
+                                  const [], // If artist doc doesn't have chords, pass empty
+                              songData: "",
+                            ),
+                          ),
+                        );
+                      },
+                      child: TrendingCard(
+                        song: Song(
+                          id: singer.id,
+                          title: "Top Tracks",
+                          chordsUsed: [],
+                          lyricsWithChords: [],
+                          albums: [],
+                        ),
+                        singer: singer,
+                        songName: singer.name,
                       ),
-                      singer: singer,
-                      songName: 'Top Track',
                     );
                   }, childCount: singers.length),
                 ),
@@ -167,6 +179,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  // ... (Keep your _buildAppBar, _buildSectionHeader, _buildArtistsHorizontalList,
+  // and shimmer methods as they were in your original code)
 
   Widget _buildHorizontalShimmer() {
     return Shimmer.fromColors(

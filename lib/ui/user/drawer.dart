@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:guitercord/auth/logout.dart';
 import 'package:guitercord/ui/user/favorite.dart';
-import 'package:guitercord/model/artist.dart';
+import 'package:guitercord/model/singer.dart';
 
 class AppDrawer extends StatelessWidget {
   final bool isDarkMode;

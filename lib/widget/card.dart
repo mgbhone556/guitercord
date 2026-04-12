@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Required for HapticFeedback
-import 'package:guitercord/model/artist.dart';
+import 'package:flutter/services.dart';
+import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
 import 'package:guitercord/ui/user/cord.dart';
 import 'package:guitercord/ui/user/detail.dart';
@@ -21,19 +21,20 @@ class TrendingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _PressedWrapper(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ChordViewScreen(
-            songName: songName,
-            singer: singer,
-            // Fixed property names to match your Song model
-            songData: '',
-            lyricsData: song.lyricsWithChords, // Changed from song.lyrics
-            chordsUsed: song.chordsUsed,
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChordViewScreen(
+              songName: songName,
+              singer: singer,
+              songData: '', // Pass any extra metadata string here if needed
+              lyricsData: song.lyricsWithChords,
+              chordsUsed: song.chordsUsed,
+            ),
           ),
-        ),
-      ),
+        );
+      },
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -50,6 +51,7 @@ class TrendingCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
+              // Background Gradient using Singer's accent color
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -122,6 +124,7 @@ class SingerCard extends StatelessWidget {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
+            // Bottom Info Card
             Align(
               alignment: Alignment.bottomCenter,
               child: Container(
@@ -146,6 +149,7 @@ class SingerCard extends StatelessWidget {
                 ),
               ),
             ),
+            // Floating Profile Image
             Positioned(
               top: -25,
               left: 0,
@@ -168,7 +172,14 @@ class SingerCard extends StatelessWidget {
                       placeholder: (context, url) => const CircleAvatar(
                         radius: 42,
                         backgroundColor: Colors.grey,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                       errorWidget: (context, url, error) => const CircleAvatar(
                         radius: 42,
@@ -179,6 +190,7 @@ class SingerCard extends StatelessWidget {
                 ),
               ),
             ),
+            // Name and Genre text
             Positioned(
               bottom: 20,
               left: 14,
@@ -228,7 +240,7 @@ class SingerCard extends StatelessWidget {
 }
 
 class SongTile extends StatelessWidget {
-  final String song;
+  final Song song; // Changed from String to Song for better data flow
   final Singer singer;
   final VoidCallback? onReturn;
 
@@ -261,19 +273,24 @@ class SongTile extends StatelessWidget {
           color: singer.accentColor,
           size: 32,
         ),
-        title: Text(song, style: const TextStyle(fontWeight: FontWeight.w600)),
-        trailing: const Text("4 Chords", style: TextStyle(color: Colors.grey)),
+        title: Text(
+          song.title,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        trailing: Text(
+          "${song.chordsUsed.length} Chords",
+          style: const TextStyle(color: Colors.grey, fontSize: 12),
+        ),
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => ChordViewScreen(
-                songName: song,
+                songName: song.title,
                 singer: singer,
-                songData:
-                    '', // If you have a list of Song objects, pass song.content here
-                lyricsData: const [],
-                chordsUsed: const [],
+                songData: '',
+                lyricsData: song.lyricsWithChords,
+                chordsUsed: song.chordsUsed,
               ),
             ),
           ).then((_) {
@@ -285,6 +302,7 @@ class SongTile extends StatelessWidget {
   }
 }
 
+// Internal wrapper to handle haptic feedback and scale animations
 class _PressedWrapper extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
@@ -323,7 +341,7 @@ class _PressedWrapperState extends State<_PressedWrapper>
     return GestureDetector(
       onTapDown: (_) {
         _controller.forward();
-        HapticFeedback.lightImpact(); // Modern haptic feel
+        HapticFeedback.lightImpact();
       },
       onTapUp: (_) => _controller.reverse(),
       onTapCancel: () => _controller.reverse(),

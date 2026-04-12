@@ -4,10 +4,20 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:guitercord/auth/role.dart';
 import 'package:guitercord/auth/login.dart';
 import 'package:guitercord/firebase_options.dart';
+import 'package:guitercord/provider/favorites_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // ဤနေရာတွင် initialize လုပ်ပါ
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    await FavoritesManager.init();
+  } catch (e) {
+    debugPrint("Initialization Error: $e");
+  }
   runApp(const ChordApp());
 }
 

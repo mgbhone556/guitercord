@@ -28,9 +28,10 @@ class Song {
       id: id,
       title: map['title'] ?? 'Untitled',
       chordsUsed: List<String>.from(map['chordsUsed'] ?? []),
-      // List mapping လုပ်တဲ့အခါ error မတက်အောင် null safety သေချာစစ်ပေးထားပါတယ်
       lyricsWithChords: (map['lyricsWithChords'] as List? ?? [])
-          .map((item) => Map<String, String>.from(item))
+          .map(
+            (item) => Map<String, String>.from(item as Map),
+          ) // Cast to Map first
           .toList(),
       albums: List<String>.from(map['albums'] ?? []),
     );
