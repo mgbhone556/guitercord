@@ -7,7 +7,7 @@ import 'package:guitercord/ui/admin/cord_history.dart';
 
 class AdminAddSongPage extends StatefulWidget {
   final Singer singer;
-  final Song? song; // optional ဖြစ်သွားပါပြီ (Add ရော Edit ရော သုံးနိုင်အောင်)
+  final Song? song;
 
   const AdminAddSongPage({super.key, required this.singer, this.song});
 
@@ -249,7 +249,7 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
             )
             .toList(),
         albums: [widget.singer.id!],
-        singerId: widget.singer.id!, // အလွတ်မထားဘဲ singer id ထည့်လိုက်ပါ
+        singerId: widget.singer.id!,
       );
 
       // --- DEBUG PRINT: ဒေတာပုံစံကို စစ်ဆေးရန် ---

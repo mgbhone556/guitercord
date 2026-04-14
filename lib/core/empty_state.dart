@@ -17,14 +17,12 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      // The key is essential for AnimatedSwitcher to identify the widget
       key: const ValueKey("empty_state_widget"),
       child: Padding(
         padding: const EdgeInsets.all(40.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Icon with a soft, faded color
             Icon(
               icon,
               size: 100,
@@ -32,7 +30,6 @@ class EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Main Bold Title
             Text(
               title,
               textAlign: TextAlign.center,
@@ -44,7 +41,6 @@ class EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Helpful Subtitle
             Text(
               subtitle,
               textAlign: TextAlign.center,

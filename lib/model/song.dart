@@ -7,7 +7,7 @@ class Song {
   final List<String> chordsUsed;
   final List<Map<String, String>> lyricsWithChords;
   final String singerId;
-  final DateTime? createdAt; // အချိန်ထည့်ရန်
+  final DateTime? createdAt;
 
   Song({
     this.id,
@@ -26,8 +26,7 @@ class Song {
       'lyricsWithChords': lyricsWithChords,
       'albums': albums,
       'singerId': singerId,
-      'createdAt':
-          createdAt ?? DateTime.now(), // လက်ရှိအချိန်ကို default ထည့်မယ်
+      'createdAt': createdAt ?? DateTime.now(),
     };
   }
 
@@ -41,7 +40,6 @@ class Song {
           .toList(),
       albums: List<String>.from(map['albums'] ?? []),
       singerId: map['singerId'] ?? '',
-      // Firestore Timestamp ကို DateTime ပြောင်းခြင်း
       createdAt: map['createdAt'] != null
           ? (map['createdAt'] as Timestamp).toDate()
           : null,

@@ -122,7 +122,6 @@ class DetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 15),
 
-                  // --- Admin Page နဲ့ တူအောင် 'singers' collection ကို ပြောင်းထားပါတယ် ---
                   StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection('artists')
@@ -204,13 +203,11 @@ class DetailScreen extends StatelessWidget {
                                 Icons.arrow_forward_ios,
                                 size: 16,
                               ),
-                              // DetailScreen.dart ထဲက ListTile ရဲ့ onTap နေရာမှာ အစားထိုးရန်
                               onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ChordViewScreen(
-                                      // Use currentSong instead of song
                                       songName: currentSong.title,
                                       singer: singer,
                                       lyricsData: currentSong.lyricsWithChords,

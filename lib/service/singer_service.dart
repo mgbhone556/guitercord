@@ -3,12 +3,10 @@ import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
 
 class SingerService {
-  // Screenshot ထဲကအတိုင်း 'artists' လို့ ပြောင်းထားပါတယ်
   final CollectionReference _artists = FirebaseFirestore.instance.collection(
     'artists',
   );
 
-  // --- SINGER CRUD ---
   Future<void> addSinger(Singer singer) async {
     await _artists.add(singer.toMap());
   }
@@ -31,14 +29,9 @@ class SingerService {
     await _artists.doc(id).delete();
   }
 
-  // --- SONG (CHORD DATA) CRUD ---
-  // Screenshot ထဲကအတိုင်း sub-collection ကို 'cords' ဟု သုံးထားပါသည်
-  // singer_service.dart ထဲက addSongToSinger ကို ဒီလိုပြင်ပါ
   Future<void> addSongToSinger(String singerId, Song song) async {
-    // ၁။ သီချင်းအသစ်ကို sub-collection ထဲ ထည့်မယ်
     await _artists.doc(singerId).collection('cords').add(song.toMap());
 
-    // ၂။ Artist document ရဲ့ updatedAt ကို လက်ရှိအချိန်နဲ့ update လုပ်မယ် (Trending မှာ ထိပ်ဆုံးရောက်ဖို့)
     await _artists.doc(singerId).update({
       'updatedAt': FieldValue.serverTimestamp(),
     });
@@ -49,7 +42,7 @@ class SingerService {
       snapshot,
     ) {
       return snapshot.docs.map((doc) {
-        return Song.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+        return Song.fromMap(doc.data(), doc.id);
       }).toList();
     });
   }
@@ -64,7 +57,6 @@ class SingerService {
     }
   }
 
-  // --- DELETE SONG ---
   Future<void> deleteSong(String singerId, String songId) async {
     try {
       await _artists.doc(singerId).collection('cords').doc(songId).delete();

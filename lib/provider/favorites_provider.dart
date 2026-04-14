@@ -5,7 +5,6 @@ class FavoritesManager {
   static const String _key = 'favorite_songs';
   static List<String> _favoriteSongs = [];
 
-  // App စဖွင့်ချိန် (main.dart) မှာ တစ်ကြိမ်ပဲ initialize လုပ်ဖို့လိုပါတယ်
   static Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
     _favoriteSongs = _prefs.getStringList(_key) ?? [];
@@ -17,7 +16,6 @@ class FavoritesManager {
     } else {
       _favoriteSongs.add(songName);
     }
-    // ဖုန်းထဲမှာ အသေသိမ်းဆည်းခြင်း
     await _prefs.setStringList(_key, _favoriteSongs);
   }
 

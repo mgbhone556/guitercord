@@ -33,8 +33,7 @@ class AdminDrawer extends StatelessWidget {
                       radius: 30,
                       backgroundColor: Theme.of(context).primaryColor,
                       child: const Icon(
-                        Icons
-                            .admin_panel_settings_rounded, // Changed to admin icon
+                        Icons.admin_panel_settings_rounded,
                         color: Colors.white,
                         size: 30,
                       ),
@@ -84,7 +83,7 @@ class AdminDrawer extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.music_note_rounded),
               title: const Text("Manage Chords"),
-              selected: selectedIndex == 3, // Assigned index 3 for Chords
+              selected: selectedIndex == 3,
               onTap: () {
                 Navigator.pop(context);
                 onTabSelected(3);

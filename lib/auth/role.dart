@@ -49,7 +49,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
                     accentColor: Colors.blue,
                     bio: '',
                   ),
-                  // dummy singer ထည့်ပေးရန်
                   song: Song(
                     id: null,
                     title: "",

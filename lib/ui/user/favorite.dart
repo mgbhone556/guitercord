@@ -33,7 +33,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
           ? EmptyState(isDark: isDark, icon: Icons.favorite)
           : StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
-                  .collectionGroup('songs')
+                  .collectionGroup('cords')
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
@@ -81,18 +81,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                           .doc(singerId)
                           .get(),
                       builder: (context, singerSnap) {
-                        String nameOfSinger = "Loading...";
-                        Color colorOfSinger = Colors.blueGrey;
-                        Singer? loadedSinger;
-
-                        if (singerSnap.hasData && singerSnap.data!.exists) {
-                          loadedSinger = Singer.fromMap(
-                            singerSnap.data!.data() as Map<String, dynamic>,
-                            singerSnap.data!.id,
-                          );
-                          nameOfSinger = loadedSinger.name;
-                          colorOfSinger = loadedSinger.accentColor;
-                        }
+                        if (singerSnap.hasData && singerSnap.data!.exists) {}
                         return Card(
                           margin: const EdgeInsets.only(bottom: 12),
                           shape: RoundedRectangleBorder(
@@ -107,7 +96,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                               try {
                                 final singerDoc = await FirebaseFirestore
                                     .instance
-                                    .collection("singers")
+                                    .collection("artists")
                                     .doc(singerId)
                                     .get();
 

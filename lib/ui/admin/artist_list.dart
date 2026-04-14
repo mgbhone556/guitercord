@@ -52,7 +52,6 @@ class ManageArtistForSongPage extends StatelessWidget {
                     singer.name,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  // ManageArtistForSongPage ထဲက Card ရဲ့ subtitle မှာ ဒါလေးထည့်ပါ
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

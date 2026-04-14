@@ -10,7 +10,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
-  bool _isAccepted = false; // Checkbox state
+  bool _isAccepted = false;
 
   void _handleGoogleLogin() async {
     if (_isLoading || !_isAccepted) return;
@@ -51,7 +51,6 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Background Aesthetic Circle
           Positioned(
             top: -100,
             right: -50,
@@ -68,7 +67,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Spacer(flex: 2),
 
-                  // Brand Section
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -105,7 +103,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const Spacer(flex: 3),
 
-                  // Checkbox Row
                   GestureDetector(
                     onTap: () => setState(() => _isAccepted = !_isAccepted),
                     child: Row(
@@ -139,7 +136,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Google Button
                   SizedBox(
                     width: double.infinity,
                     height: 60,

@@ -33,7 +33,7 @@ class _SearchPageState extends State<SearchPage> {
     setState(() {
       _recentSearches.removeAt(index);
     });
-    HapticFeedback.lightImpact(); // Pro touch
+    HapticFeedback.lightImpact();
   }
 
   void _clearAllHistory() {

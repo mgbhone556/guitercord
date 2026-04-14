@@ -8,7 +8,7 @@ class AppDrawer extends StatelessWidget {
   final bool isDarkMode;
   final VoidCallback onThemeToggle;
   final List<Singer> singers;
-  final String currentRoute; // Added to track active page
+  final String currentRoute;
 
   const AppDrawer({
     super.key,
@@ -91,7 +91,7 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
             const Divider(indent: 20, endIndent: 20),
-            const LogoutTile(), // <--- Your custom LogoutTile class
+            const LogoutTile(),
             // --- Theme Toggle Section ---
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -148,7 +148,7 @@ class AppDrawer extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
-                width: 150, // Define how much space the text can take
+                width: 150,
                 child: Text(
                   user?.email ?? "Admin User",
                   style: const TextStyle(

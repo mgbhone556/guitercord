@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:guitercord/auth/login.dart';
-import 'package:guitercord/service/auth_service.dart'; // Ensure this path is correct
+import 'package:guitercord/service/auth_service.dart';
 
 class LogoutTile extends StatelessWidget {
   const LogoutTile({super.key});
@@ -25,20 +25,12 @@ class LogoutTile extends StatelessWidget {
     );
 
     if (confirm == true && context.mounted) {
-      // 1. Close the drawer
       Navigator.pop(context);
 
-      // 2. TRIGGER THE ACTUAL LOGOUT
-      // This clears the Firebase session/Token
       await AuthService().signOut();
 
-      // 3. Redirect to login and clear navigation stack
-      // Using pushNamedAndRemoveUntil ensures the user can't go "Back"
       if (context.mounted) {
-        MaterialPageRoute(
-          builder: (context) =>
-              const LoginScreen(), // Replace with your login screen
-        );
+        MaterialPageRoute(builder: (context) => const LoginScreen());
       }
     }
   }

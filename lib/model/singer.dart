@@ -23,7 +23,6 @@ class Singer {
       name: map['name'] ?? 'Unknown Artist',
       genre: map['genre'] ?? 'Genre',
       imageUrl: map['imageUrl'] ?? '',
-      // Converts Firestore hex string or int to Flutter Color
       accentColor: Color(map['accentColor'] ?? 0xFF6200EE),
       bio: map['bio'] ?? '',
     );
@@ -33,7 +32,6 @@ class Singer {
       'name': name,
       'genre': genre,
       'imageUrl': imageUrl,
-      // Store the color as an integer value (0xFF...)
       'accentColor': accentColor.value,
       'bio': bio,
     };

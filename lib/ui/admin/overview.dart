@@ -19,7 +19,6 @@ class OverviewPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Grid ထဲမှာ Artist အရေအတွက်ရော ကျန်တဲ့ Stats တွေကိုပါ ပြပါမယ်
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -28,7 +27,6 @@ class OverviewPage extends StatelessWidget {
               mainAxisSpacing: 12,
               childAspectRatio: 1.5,
               children: [
-                // ၁။ စုစုပေါင်း User အရေအတွက်
                 _buildStatStream(
                   collection: "users",
                   label: "Total Users",
@@ -36,16 +34,13 @@ class OverviewPage extends StatelessWidget {
                   color: Colors.blue,
                 ),
 
-                // ၂။ စုစုပေါင်း Artist အရေအတွက် (ဒီနေရာက သင်လိုချင်တဲ့အပိုင်းပါ)
                 _buildStatStream(
-                  collection:
-                      "artists", // Singer model နဲ့ ကိုက်ညီအောင် 'singers' လို့ သုံးထားပါတယ်
+                  collection: "artists",
                   label: "Artists",
                   icon: Icons.mic_external_on,
                   color: Colors.purple,
                 ),
 
-                // ၃။ စုစုပေါင်း Songs အရေအတွက်
                 _buildTotalSongsStat(),
               ],
             ),
@@ -83,7 +78,6 @@ class OverviewPage extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection(collection).snapshots(),
       builder: (context, snapshot) {
-        // snapshot.data!.docs.length က ဖန်တီးထားသမျှ artist အရေအတွက်ကို ပြပေးမှာပါ
         final count = snapshot.data?.docs.length ?? 0;
         return _buildStatCard(label, count.toString(), icon, color);
       },

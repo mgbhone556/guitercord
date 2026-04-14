@@ -94,12 +94,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
           _buildSectionHeader("Trending Now"),
 
-          // --- 2. Trending Now Section (ပြင်ဆင်ထားသော Version) ---
           StreamBuilder<QuerySnapshot>(
-            // CollectionGroup ကိုသုံးရင် Artist ID သိစရာမလိုဘဲ cords အားလုံးထဲက ရှာပေးပါတယ်
             stream: FirebaseFirestore.instance
                 .collectionGroup('cords')
-                // .orderBy('createdAt', descending: true)
                 .limit(10)
                 .snapshots(),
             builder: (context, snapshot) {

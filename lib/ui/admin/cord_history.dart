@@ -1,9 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:guitercord/core/empty_state.dart';
 import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
-import 'package:guitercord/service/singer_service.dart'; // Service ကို import လုပ်ပါ
+import 'package:guitercord/service/singer_service.dart';
 
 class AdminChordHistoryPage extends StatelessWidget {
   final Singer singer;
@@ -22,7 +21,6 @@ class AdminChordHistoryPage extends StatelessWidget {
         title: Text("${singer.name} - History"),
         centerTitle: true,
       ),
-      // FirebaseFirestore တိုက်ရိုက်မခေါ်ဘဲ SingerService ကို သုံးပါမယ်
       body: StreamBuilder<List<Song>>(
         stream: SingerService().getSongsForSinger(singer.id!),
         builder: (context, snapshot) {
@@ -130,7 +128,6 @@ class AdminChordHistoryPage extends StatelessWidget {
 
     if (confirm) {
       try {
-        // SingerService ထဲက delete function ကို သုံးပါမယ်
         await SingerService().deleteSong(singerId, song.id!);
 
         if (context.mounted) {

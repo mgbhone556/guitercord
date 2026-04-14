@@ -9,7 +9,6 @@ import 'package:guitercord/provider/favorites_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // ဤနေရာတွင် initialize လုပ်ပါ
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -38,7 +37,6 @@ class _ChordAppState extends State<ChordApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Guitar Chord App',
-      // ThemeMode ကို သုံးတာက ပိုပြီး Stable ဖြစ်ပါတယ်
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       theme: _lightTheme,
       darkTheme: _darkTheme,
@@ -47,17 +45,14 @@ class _ChordAppState extends State<ChordApp> {
   }
 }
 
-// Auth Logic ကို သီးသန့် Widget ခွဲထုတ်လိုက်တာက Build Cycle ကို ပိုမြန်စေပါတယ်
 class AuthEntryGate extends StatelessWidget {
   const AuthEntryGate({super.key});
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<firebase_auth.User?>(
-      // AuthService ထက်စာရင် FirebaseAuth ရဲ့ standard stream ကို တိုက်ရိုက်သုံးတာ ပိုစိတ်ချရပါတယ်
       stream: firebase_auth.FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // Loading ဖြစ်နေချိန်မှာ အမည်းရောင်မဖြစ်အောင် White Background ထားပါတယ်
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             backgroundColor: Colors.white,
@@ -66,18 +61,14 @@ class AuthEntryGate extends StatelessWidget {
         }
 
         if (snapshot.hasData && snapshot.data != null) {
-          // Logged in ဖြစ်ရင် Role စစ်တဲ့ AuthWrapper ဆီသွားမယ်
           return AuthWrapper(user: snapshot.data!);
         }
 
-        // Login မဝင်ရသေးရင် LoginScreen ဆီသွားမယ်
         return const LoginScreen();
       },
     );
   }
 }
-
-// --- Themes Setup ---
 
 final ThemeData _lightTheme = ThemeData(
   useMaterial3: true,
@@ -96,7 +87,7 @@ final ThemeData _darkTheme = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
   colorSchemeSeed: const Color(0xFF8E54E9),
-  scaffoldBackgroundColor: const Color(0xFF121212), // Standard Material Dark
+  scaffoldBackgroundColor: const Color(0xFF121212),
   appBarTheme: const AppBarTheme(
     backgroundColor: Color(0xFF1F1B24),
     foregroundColor: Colors.white,
