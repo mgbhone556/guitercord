@@ -80,6 +80,7 @@ class AllArtistsPage extends StatelessWidget {
                       singer: singer,
 
                       heroTag: "popular-hero-${singer.name}",
+                      song: '',
                     ),
                   ),
                 ),

@@ -1,12 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Song {
   final String? id;
   final String title;
   final List<String> albums;
   final List<String> chordsUsed;
   final List<Map<String, String>> lyricsWithChords;
-
-  // ✅ ADD THIS
   final String singerId;
+  final DateTime? createdAt; // အချိန်ထည့်ရန်
 
   Song({
     this.id,
@@ -15,6 +16,7 @@ class Song {
     required this.lyricsWithChords,
     required this.albums,
     required this.singerId,
+    this.createdAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,9 +25,9 @@ class Song {
       'chordsUsed': chordsUsed,
       'lyricsWithChords': lyricsWithChords,
       'albums': albums,
-
-      // ✅ ADD THIS
       'singerId': singerId,
+      'createdAt':
+          createdAt ?? DateTime.now(), // လက်ရှိအချိန်ကို default ထည့်မယ်
     };
   }
 
@@ -38,9 +40,11 @@ class Song {
           .map((item) => Map<String, String>.from(item as Map))
           .toList(),
       albums: List<String>.from(map['albums'] ?? []),
-
-      // ✅ ADD THIS
       singerId: map['singerId'] ?? '',
+      // Firestore Timestamp ကို DateTime ပြောင်းခြင်း
+      createdAt: map['createdAt'] != null
+          ? (map['createdAt'] as Timestamp).toDate()
+          : null,
     );
   }
 }

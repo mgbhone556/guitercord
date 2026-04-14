@@ -120,7 +120,8 @@ class SingerCard extends StatelessWidget {
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => DetailScreen(singer: singer, heroTag: heroTag),
+          builder: (context) =>
+              DetailScreen(singer: singer, heroTag: heroTag, song: ''),
         ),
       ),
       child: Container(

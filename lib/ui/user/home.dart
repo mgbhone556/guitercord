@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:guitercord/core/empty_state.dart';
 import 'package:guitercord/model/song.dart';
-import 'package:guitercord/ui/user/detail.dart';
+import 'package:guitercord/ui/user/cord.dart';
 import 'package:guitercord/widget/card.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:guitercord/model/singer.dart';
@@ -14,13 +14,15 @@ import 'package:guitercord/ui/user/search.dart';
 class HomeScreen extends StatefulWidget {
   final VoidCallback onThemeToggle;
   final bool isDarkMode;
-  final Song song;
+  final Song? song;
+  final Singer? singer;
 
   const HomeScreen({
     super.key,
     required this.onThemeToggle,
     required this.isDarkMode,
-    required this.song,
+    this.song,
+    this.singer,
   });
 
   @override
@@ -92,81 +94,87 @@ class _HomeScreenState extends State<HomeScreen> {
 
           _buildSectionHeader("Trending Now"),
 
-          // --- 2. Trending Now Section (Fixed Navigation) ---
+          // --- 2. Trending Now Section (ပြင်ဆင်ထားသော Version) ---
           StreamBuilder<QuerySnapshot>(
+            // CollectionGroup ကိုသုံးရင် Artist ID သိစရာမလိုဘဲ cords အားလုံးထဲက ရှာပေးပါတယ်
             stream: FirebaseFirestore.instance
-                .collection('artists')
-                .limit(8)
+                .collectionGroup('cords')
+                // .orderBy('createdAt', descending: true)
+                .limit(10)
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return _buildGridShimmer();
               }
 
-              final singers =
-                  snapshot.data?.docs
-                      .map(
-                        (doc) => Singer.fromMap(
-                          doc.data() as Map<String, dynamic>,
-                          doc.id,
-                        ),
-                      )
-                      .toList() ??
-                  [];
-
-              if (singers.isEmpty) {
-                return SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  sliver: SliverToBoxAdapter(
-                    child: EmptyState(
-                      isDark: widget.isDarkMode,
-                      icon: Icons.music_note_rounded,
-                    ),
-                  ),
+              if (snapshot.hasError) {
+                print(
+                  "Firebase Error: ${snapshot.error}",
+                ); // Error ကို console မှာ ကြည့်ရန်
+                return SliverToBoxAdapter(
+                  child: Center(child: Text("Error loading data")),
                 );
               }
+
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const SliverToBoxAdapter(
+                  child: Center(child: Text("No trending songs yet.")),
+                );
+              }
+
+              final songDocs = snapshot.data!.docs;
 
               return SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 0.85,
+                    mainAxisSpacing: 18,
+                    crossAxisSpacing: 18,
+                    childAspectRatio: 0.8,
                   ),
                   delegate: SliverChildBuilderDelegate((context, index) {
-                    final singer = singers[index];
-                    // Unique tag for Trending section to avoid Hero conflicts
-                    final String trendingHeroTag = "trending-${singer.id}";
+                    final songData =
+                        songDocs[index].data() as Map<String, dynamic>;
+                    final song = Song.fromMap(songData, songDocs[index].id);
 
-                    return TrendingCard(
-                      singer: singer,
-                      songName: singer.genre.toUpperCase(),
-                      // Pass the song title to display in the card
-                      // We pass a placeholder song object because TrendingCard expects one
-                      song: Song(
-                        id: '',
-                        title: '',
-                        chordsUsed: [],
-                        lyricsWithChords: [],
-                        albums: [],
-                        singerId: '',
-                      ),
-                      // FIX: Navigate to DetailScreen where songs/cords are actually loaded
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DetailScreen(
-                              singer: singer,
-                              heroTag: trendingHeroTag,
-                            ),
-                          ),
+                    // Singer data ကို song ထဲက singerId နဲ့ ပြန်ရှာရပါမယ်
+                    return FutureBuilder<DocumentSnapshot>(
+                      future: FirebaseFirestore.instance
+                          .collection('artists')
+                          .doc(song.singerId)
+                          .get(),
+                      builder: (context, singerSnapshot) {
+                        if (!singerSnapshot.hasData)
+                          return _buildSingleShimmer();
+
+                        final singer = Singer.fromMap(
+                          singerSnapshot.data!.data() as Map<String, dynamic>,
+                          singerSnapshot.data!.id,
+                        );
+
+                        return TrendingCard(
+                          singer: singer,
+                          songName: song.title,
+                          song: song,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChordViewScreen(
+                                  songName: song.title,
+                                  singer: singer,
+                                  lyricsData: song.lyricsWithChords,
+                                  chordsUsed: song.chordsUsed,
+                                  songData: '',
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     );
-                  }, childCount: singers.length),
+                  }, childCount: songDocs.length),
                 ),
               );
             },
@@ -177,62 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ... (Keep your _buildAppBar, _buildSectionHeader, _buildArtistsHorizontalList,
-  // and shimmer methods as they were in your original code)
-
-  Widget _buildHorizontalShimmer() {
-    return Shimmer.fromColors(
-      baseColor: widget.isDarkMode ? Colors.white10 : Colors.grey[300]!,
-      highlightColor: widget.isDarkMode ? Colors.white24 : Colors.grey[100]!,
-      child: SizedBox(
-        height: 220,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          itemBuilder: (_, __) => Padding(
-            padding: const EdgeInsets.only(right: 20, top: 35),
-            child: Container(
-              width: 160,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(28),
-              ),
-            ),
-          ),
-          itemCount: 4,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGridShimmer() {
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: 0.85,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) => Shimmer.fromColors(
-            baseColor: widget.isDarkMode ? Colors.white10 : Colors.grey[300]!,
-            highlightColor: widget.isDarkMode
-                ? Colors.white24
-                : Colors.grey[100]!,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-              ),
-            ),
-          ),
-          childCount: 4,
-        ),
-      ),
-    );
-  }
+  // --- UI Methods (AppBar, Shimmers, etc.) ---
 
   Widget _buildAppBar(BuildContext context) {
     return SliverAppBar(
@@ -309,6 +262,73 @@ class _HomeScreenState extends State<HomeScreen> {
         physics: const BouncingScrollPhysics(),
         itemCount: filtered.length,
         itemBuilder: (context, index) => SingerCard(singer: filtered[index]),
+      ),
+    );
+  }
+
+  Widget _buildHorizontalShimmer() {
+    return Shimmer.fromColors(
+      baseColor: widget.isDarkMode ? Colors.white10 : Colors.grey[300]!,
+      highlightColor: widget.isDarkMode ? Colors.white24 : Colors.grey[100]!,
+      child: SizedBox(
+        height: 220,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          itemCount: 4,
+          itemBuilder: (_, __) => Padding(
+            padding: const EdgeInsets.only(right: 20, top: 35),
+            child: Container(
+              width: 160,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(28),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGridShimmer() {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 0.85,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) => Shimmer.fromColors(
+            baseColor: widget.isDarkMode ? Colors.white10 : Colors.grey[300]!,
+            highlightColor: widget.isDarkMode
+                ? Colors.white24
+                : Colors.grey[100]!,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+            ),
+          ),
+          childCount: 4,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSingleShimmer() {
+    return Shimmer.fromColors(
+      baseColor: widget.isDarkMode ? Colors.white10 : Colors.grey[300]!,
+      highlightColor: widget.isDarkMode ? Colors.white24 : Colors.grey[100]!,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
       ),
     );
   }

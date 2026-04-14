@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:guitercord/core/empty_state.dart';
 import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
+import 'package:guitercord/service/singer_service.dart'; // Service ကို import လုပ်ပါ
 
 class AdminChordHistoryPage extends StatelessWidget {
   final Singer singer;
@@ -20,31 +22,32 @@ class AdminChordHistoryPage extends StatelessWidget {
         title: Text("${singer.name} - History"),
         centerTitle: true,
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('artists')
-            .doc(singer.id)
-            .collection('songs')
-            .snapshots(),
+      // FirebaseFirestore တိုက်ရိုက်မခေါ်ဘဲ SingerService ကို သုံးပါမယ်
+      body: StreamBuilder<List<Song>>(
+        stream: SingerService().getSongsForSinger(singer.id!),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
-              child: Text("No chord history found for this artist."),
+
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: EmptyState(
+                isDark: false,
+                icon: Icons.history,
+                title: "No chord history found!",
+                subtitle: "Check back later for new chord entries.",
+              ),
             );
           }
 
+          final songs = snapshot.data!;
+
           return ListView.builder(
             padding: const EdgeInsets.all(12),
-            itemCount: snapshot.data!.docs.length,
+            itemCount: songs.length,
             itemBuilder: (context, index) {
-              var doc = snapshot.data!.docs[index];
-              var song = Song.fromMap(
-                doc.data() as Map<String, dynamic>,
-                doc.id,
-              );
+              final song = songs[index];
 
               return Card(
                 elevation: 2,
@@ -126,17 +129,21 @@ class AdminChordHistoryPage extends StatelessWidget {
         false;
 
     if (confirm) {
-      await FirebaseFirestore.instance
-          .collection('artists')
-          .doc(singerId)
-          .collection('songs')
-          .doc(song.id)
-          .delete();
+      try {
+        // SingerService ထဲက delete function ကို သုံးပါမယ်
+        await SingerService().deleteSong(singerId, song.id!);
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Deleted successfully")));
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("Deleted successfully")));
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Error: $e")));
+        }
       }
     }
   }

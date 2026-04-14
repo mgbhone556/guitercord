@@ -2,17 +2,22 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
+import 'package:guitercord/core/empty_state.dart';
 import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
 import 'package:guitercord/ui/user/cord.dart';
-// ... (ကျန်တဲ့ import တွေ အရင်အတိုင်းထားပါ)
 
 class DetailScreen extends StatelessWidget {
   final Singer singer;
   final String heroTag;
+  final String song;
 
-  const DetailScreen({super.key, required this.singer, required this.heroTag});
+  const DetailScreen({
+    super.key,
+    required this.singer,
+    required this.heroTag,
+    required this.song,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -120,11 +125,9 @@ class DetailScreen extends StatelessWidget {
                   // --- Admin Page နဲ့ တူအောင် 'singers' collection ကို ပြောင်းထားပါတယ် ---
                   StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
-                        .collection(
-                          'singers',
-                        ) // ဤနေရာတွင် 'singers' ဟု ပြင်လိုက်ပါပြီ
+                        .collection('artists')
                         .doc(singer.id)
-                        .collection('songs')
+                        .collection('cords')
                         .snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -138,7 +141,12 @@ class DetailScreen extends StatelessWidget {
                       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                         return const Padding(
                           padding: EdgeInsets.symmetric(vertical: 20),
-                          child: Text("No songs available yet."),
+                          child: EmptyState(
+                            isDark: false,
+                            icon: Icons.music_note,
+                            title: "No songs found",
+                            subtitle: "This artist doesn't have any songs yet.",
+                          ),
                         );
                       }
 

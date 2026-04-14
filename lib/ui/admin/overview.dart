@@ -58,13 +58,13 @@ class OverviewPage extends StatelessWidget {
   // Artist တစ်ဦးချင်းစီရဲ့ အောက်က songs collection အားလုံးကို ပေါင်းပြီး ရေတွက်တဲ့ function
   Widget _buildTotalSongsStat() {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collectionGroup('songs').snapshots(),
+      stream: FirebaseFirestore.instance.collectionGroup('cords').snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) return const Text("Error");
         int totalSongs = snapshot.hasData ? snapshot.data!.docs.length : 0;
 
         return _buildStatCard(
-          "Total Songs",
+          "Total Cords",
           totalSongs.toString(),
           Icons.music_note_rounded,
           Colors.green,

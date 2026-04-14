@@ -61,7 +61,7 @@ class ManageArtistForSongPage extends StatelessWidget {
                         stream: FirebaseFirestore.instance
                             .collection('artists')
                             .doc(singer.id)
-                            .collection('songs')
+                            .collection('cords')
                             .snapshots(),
                         builder: (context, snapshot) {
                           int count = snapshot.hasData

@@ -210,7 +210,7 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
     );
   }
 
-  // AdminAddSongPage ရဲ့ _saveOrUpdateSong method ထဲမှာ ပြင်ရန်
+  // AdminAddSongPage ရဲ့ _saveOrUpdateSong method ထဲမှာ print logic များထည့်သွင်းထားပါသည်
   Future<void> _saveOrUpdateSong() async {
     if (_selectedSong == null || _selectedSong!.isEmpty) {
       ScaffoldMessenger.of(
@@ -218,6 +218,12 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
       ).showSnackBar(const SnackBar(content: Text("Please enter song title")));
       return;
     }
+
+    // --- DEBUG PRINT: စတင်သိမ်းဆည်းချိန် ---
+    debugPrint("=== Starting Save/Update Process ===");
+    debugPrint("Artist ID: ${widget.singer.id}");
+    debugPrint("Song Title: $_selectedSong");
+    debugPrint("Is Editing: $_isEditing");
 
     showDialog(
       context: context,
@@ -227,7 +233,7 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
 
     try {
       final songData = Song(
-        id: _editingSongId, // Edit ဆိုရင် id ရှိမယ်၊ Add ဆိုရင် null ဖြစ်မယ်
+        id: _editingSongId,
         title: _selectedSong!,
         chordsUsed: _chordController.text
             .split(',')
@@ -242,25 +248,30 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
               },
             )
             .toList(),
-        // ဒီမှာ singer.id ကို သေချာထည့်ပေးပါ (ဒါမှ song က artist နဲ့ link ဖြစ်မှာပါ)
         albums: [widget.singer.id!],
-        singerId: '',
+        singerId: widget.singer.id!, // အလွတ်မထားဘဲ singer id ထည့်လိုက်ပါ
       );
+
+      // --- DEBUG PRINT: ဒေတာပုံစံကို စစ်ဆေးရန် ---
+      debugPrint("Song Data Map: ${songData.toMap()}");
 
       if (_isEditing && _editingSongId != null) {
         // Edit Mode
+        debugPrint("Action: Updating existing song with ID: $_editingSongId");
         await FirebaseFirestore.instance
             .collection('artists')
             .doc(widget.singer.id)
-            .collection('songs')
+            .collection('cords')
             .doc(_editingSongId)
             .update(songData.toMap());
       } else {
         // Add New Mode
+        debugPrint("Action: Adding new song to Artist");
         await SingerService().addSongToSinger(widget.singer.id!, songData);
       }
 
-      Navigator.pop(context); // close loading dialog
+      if (mounted) Navigator.pop(context); // close loading dialog
+      debugPrint("=== Process Completed Successfully ===");
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -279,8 +290,12 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
         _resetLines();
       });
     } catch (e) {
-      Navigator.pop(context); // close loading
-      debugPrint("Error: $e");
+      if (mounted) Navigator.pop(context); // close loading
+
+      // --- DEBUG PRINT: Error ဖြစ်လျှင် ပြရန် ---
+      debugPrint("!!! ERROR OCCURRED !!!");
+      debugPrint("Error Details: $e");
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error: $e")));

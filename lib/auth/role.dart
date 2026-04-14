@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
 import 'package:guitercord/ui/admin/dashboard.dart';
 import 'package:guitercord/ui/user/home.dart';
@@ -40,6 +41,15 @@ class _AuthWrapperState extends State<AuthWrapper> {
               : HomeScreen(
                   onThemeToggle: toggleTheme,
                   isDarkMode: isDarkMode,
+                  singer: Singer(
+                    id: '',
+                    name: '',
+                    genre: '',
+                    imageUrl: '',
+                    accentColor: Colors.blue,
+                    bio: '',
+                  ),
+                  // dummy singer ထည့်ပေးရန်
                   song: Song(
                     id: null,
                     title: "",
