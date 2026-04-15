@@ -48,7 +48,7 @@ class _ChordViewScreenState extends State<ChordViewScreen> {
     );
   }
 
-  void _shareSong() {
+  void _shareSong() async {
     StringBuffer shareText = StringBuffer();
     shareText.writeln("${widget.songName} - ${widget.singer.name}\n");
 
@@ -58,24 +58,40 @@ class _ChordViewScreenState extends State<ChordViewScreen> {
       }
       shareText.writeln("${line['text']}");
     }
+    final RenderBox? box = context.findRenderObject() as RenderBox?;
     shareText.writeln("\nShared from GuitarCord App");
     Share.share(shareText.toString());
+    await Share.share(
+      shareText.toString(),
+      sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset:
+          false, // Prevents layout jumping when popups appear
       appBar: AppBar(
         title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               widget.songName,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             Text(
               widget.singer.name,
-              style: TextStyle(fontSize: 13, color: widget.singer.accentColor),
+              style: TextStyle(
+                fontSize: 13,
+                color: (widget.singer.accentColor == Colors.transparent)
+                    ? Colors.black
+                    : Colors.white,
+              ),
             ),
           ],
         ),
@@ -94,59 +110,78 @@ class _ChordViewScreenState extends State<ChordViewScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Chords Used",
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text(
+                    "Chords Used:",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment
+                            .spaceBetween, // Distributes space evenly
+                        children: widget.chordsUsed
+                            .map(
+                              (c) =>
+                                  _buildChordBox(c, widget.singer.accentColor),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: widget.chordsUsed
-                    .map((c) => _buildChordBox(c, widget.singer.accentColor))
-                    .toList(),
-              ),
-            ),
-            const Divider(height: 40),
-            _buildLyricsAndChords(),
-          ],
+
+              const Divider(height: 40),
+              _buildLyricsAndChords(),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildChordBox(String name, Color color) {
-    return Container(
-      width: 55,
-      height: 65,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            name,
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              color: color,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Container(
+        height: 55,
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min, // Keep this
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              name,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
-          ),
-          const Icon(Icons.grid_on, size: 12, color: Colors.grey),
-        ],
+          ],
+        ),
       ),
     );
   }
