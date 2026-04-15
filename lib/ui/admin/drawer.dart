@@ -97,6 +97,12 @@ class AdminDrawer extends StatelessWidget {
             const LogoutTile(),
 
             const SizedBox(height: 10),
+
+            Text(
+              "Version 1.0.0",
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 12),
           ],
         ),
       ),

@@ -18,30 +18,18 @@ class AdminAddSongPage extends StatefulWidget {
 class _AdminAddSongPageState extends State<AdminAddSongPage> {
   String? _selectedSong;
   final _chordController = TextEditingController();
-  List<LineInput> _lines = [];
+  // Single controller for the entire Notepad input
+  final _notepadController = TextEditingController();
+
   bool _isEditing = false;
   String? _editingSongId;
 
   @override
   void initState() {
     super.initState();
-    // History ကနေ Edit ဖို့ song ပါလာရင် တန်းပြီး data သွင်းမယ်
     if (widget.song != null) {
       _startEditing(widget.song!);
-    } else {
-      _resetLines();
     }
-  }
-
-  void _resetLines() {
-    setState(() {
-      _lines = [
-        LineInput(
-          chordController: TextEditingController(),
-          textController: TextEditingController(),
-        ),
-      ];
-    });
   }
 
   void _startEditing(Song song) {
@@ -50,14 +38,29 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
       _editingSongId = song.id;
       _selectedSong = song.title;
       _chordController.text = song.chordsUsed.join(", ");
-      _lines = song.lyricsWithChords
-          .map(
-            (m) => LineInput(
-              chordController: TextEditingController(text: m['chord'] ?? ''),
-              textController: TextEditingController(text: m['text'] ?? ''),
-            ),
-          )
-          .toList();
+
+      // Convert the List<Map> from Firestore into a readable string for the notepad
+      StringBuffer buffer = StringBuffer();
+      for (var line in song.lyricsWithChords) {
+        String chord = line['chord'] ?? '';
+        String text = line['text'] ?? '';
+
+        if (chord.isNotEmpty) {
+          buffer.writeln("[$chord]"); // Put chords in brackets
+        }
+        buffer.writeln(text);
+      }
+      _notepadController.text = buffer.toString();
+    });
+  }
+
+  void _resetForm() {
+    setState(() {
+      _isEditing = false;
+      _editingSongId = null;
+      _selectedSong = null;
+      _chordController.clear();
+      _notepadController.clear();
     });
   }
 
@@ -87,7 +90,9 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // --- TOP INPUTS ---
             Card(
               elevation: 0,
               shape: RoundedRectangleBorder(
@@ -105,12 +110,11 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
                         border: OutlineInputBorder(),
                       ),
                     ),
-
                     const SizedBox(height: 15),
                     TextField(
                       controller: _chordController,
                       decoration: const InputDecoration(
-                        labelText: "Chords Used (e.g. G, C, D)",
+                        labelText: "Chords Used Summary (e.g. G, C, D)",
                         border: OutlineInputBorder(),
                       ),
                     ),
@@ -118,75 +122,52 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
                 ),
               ),
             ),
+
             const SizedBox(height: 20),
             const Text(
-              "Lyrics & Chords",
+              "Lyrics & Chords (Notepad)",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const Text(
+              "Tip: Put chord on one line like [G] and lyrics on the next line.",
+              style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 10),
 
-            ..._lines.asMap().entries.map((entry) {
-              int idx = entry.key;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 70,
-                      child: TextField(
-                        controller: _lines[idx].chordController,
-                        decoration: const InputDecoration(
-                          hintText: "Chord",
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: _lines[idx].textController,
-                        decoration: const InputDecoration(
-                          hintText: "Lyric line",
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle, color: Colors.red),
-                      onPressed: () => setState(() => _lines.removeAt(idx)),
-                    ),
-                  ],
+            // --- NOTEPAD INPUT ---
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: TextField(
+                controller: _notepadController,
+                maxLines: null, // Unlimited lines
+                minLines: 15,
+                keyboardType: TextInputType.multiline,
+                style: const TextStyle(
+                  fontFamily: 'monospace', // Monospace helps with alignment
+                  fontSize: 15,
                 ),
-              );
-            }).toList(),
-
-            TextButton.icon(
-              onPressed: () => setState(
-                () => _lines.add(
-                  LineInput(
-                    chordController: TextEditingController(),
-                    textController: TextEditingController(),
-                  ),
+                decoration: const InputDecoration(
+                  hintText:
+                      "[G]\nI'm singing a song...\n\n[C]\nIn the key of C...",
+                  contentPadding: EdgeInsets.all(15),
+                  border: InputBorder.none,
                 ),
               ),
-              icon: const Icon(Icons.add),
-              label: const Text("ADD NEW LINE"),
             ),
 
             const SizedBox(height: 30),
+
+            // --- SAVE BUTTONS ---
             Row(
               children: [
                 if (_isEditing)
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () {
-                        setState(() {
-                          _isEditing = false;
-                          _selectedSong = null;
-                          _chordController.clear();
-                          _resetLines();
-                        });
-                      },
+                      onPressed: _resetForm,
                       child: const Text("CANCEL"),
                     ),
                   ),
@@ -210,7 +191,6 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
     );
   }
 
-  // AdminAddSongPage ရဲ့ _saveOrUpdateSong method ထဲမှာ print logic များထည့်သွင်းထားပါသည်
   Future<void> _saveOrUpdateSong() async {
     if (_selectedSong == null || _selectedSong!.isEmpty) {
       ScaffoldMessenger.of(
@@ -219,11 +199,35 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
       return;
     }
 
-    // --- DEBUG PRINT: စတင်သိမ်းဆည်းချိန် ---
-    debugPrint("=== Starting Save/Update Process ===");
-    debugPrint("Artist ID: ${widget.singer.id}");
-    debugPrint("Song Title: $_selectedSong");
-    debugPrint("Is Editing: $_isEditing");
+    // --- PARSING LOGIC ---
+    // This converts the raw text into the List<Map> format your app expects
+    List<String> lines = _notepadController.text.split('\n');
+    List<Map<String, String>> parsedData = [];
+
+    for (int i = 0; i < lines.length; i++) {
+      String currentLine = lines[i].trim();
+      if (currentLine.isEmpty) continue;
+
+      // Check if this line is a chord (e.g., [G] or [Am7])
+      if (currentLine.startsWith('[') && currentLine.endsWith(']')) {
+        String chordName = currentLine.substring(1, currentLine.length - 1);
+        String lyricsLine = "";
+
+        // Look at the next line for the lyrics
+        if (i + 1 < lines.length) {
+          String nextLine = lines[i + 1].trim();
+          // If the next line isn't another chord, use it as lyrics
+          if (!(nextLine.startsWith('[') && nextLine.endsWith(']'))) {
+            lyricsLine = nextLine;
+            i++; // Skip the next line in the loop
+          }
+        }
+        parsedData.add({'chord': chordName, 'text': lyricsLine});
+      } else {
+        // Just lyrics without a chord line above it
+        parsedData.add({'chord': '', 'text': currentLine});
+      }
+    }
 
     showDialog(
       context: context,
@@ -240,24 +244,12 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
             .map((e) => e.trim())
             .where((e) => e.isNotEmpty)
             .toList(),
-        lyricsWithChords: _lines
-            .map(
-              (l) => {
-                'chord': l.chordController.text.trim(),
-                'text': l.textController.text.trim(),
-              },
-            )
-            .toList(),
+        lyricsWithChords: parsedData,
         albums: [widget.singer.id!],
         singerId: widget.singer.id!,
       );
 
-      // --- DEBUG PRINT: ဒေတာပုံစံကို စစ်ဆေးရန် ---
-      debugPrint("Song Data Map: ${songData.toMap()}");
-
       if (_isEditing && _editingSongId != null) {
-        // Edit Mode
-        debugPrint("Action: Updating existing song with ID: $_editingSongId");
         await FirebaseFirestore.instance
             .collection('artists')
             .doc(widget.singer.id)
@@ -265,46 +257,21 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
             .doc(_editingSongId)
             .update(songData.toMap());
       } else {
-        // Add New Mode
-        debugPrint("Action: Adding new song to Artist");
         await SingerService().addSongToSinger(widget.singer.id!, songData);
       }
 
-      if (mounted) Navigator.pop(context); // close loading dialog
-      debugPrint("=== Process Completed Successfully ===");
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _isEditing ? "Updated Successfully!" : "Saved Successfully!",
-          ),
-        ),
-      );
-
-      // Form ကို reset ပြန်လုပ်မယ်
-      setState(() {
-        _isEditing = false;
-        _editingSongId = null;
-        _selectedSong = null;
-        _chordController.clear();
-        _resetLines();
-      });
-    } catch (e) {
       if (mounted) Navigator.pop(context); // close loading
 
-      // --- DEBUG PRINT: Error ဖြစ်လျှင် ပြရန် ---
-      debugPrint("!!! ERROR OCCURRED !!!");
-      debugPrint("Error Details: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_isEditing ? "Updated!" : "Saved!")),
+      );
 
+      _resetForm();
+    } catch (e) {
+      if (mounted) Navigator.pop(context); // close loading
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error: $e")));
     }
   }
-}
-
-class LineInput {
-  final TextEditingController chordController;
-  final TextEditingController textController;
-  LineInput({required this.chordController, required this.textController});
 }
