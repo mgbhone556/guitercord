@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "guitercord": "cord-library",
+    "default": "cord-library"
+  },
+  "targets": {},
+  "etags": {}
+}

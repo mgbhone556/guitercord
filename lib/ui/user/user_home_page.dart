@@ -30,6 +30,20 @@ class UserHomePage extends StatefulWidget {
 }
 
 class _UserHomePageState extends State<UserHomePage> {
+  int _refreshVersion = 0;
+  Future<void> _handleRefresh() async {
+    // Since you are using Streams, Firestore updates automatically.
+    // However, for a RefreshIndicator to feel "real", we usually
+    // trigger a setState to rebuild the UI or wait for a second.
+    setState(() {
+      _refreshVersion++; // This forces the build method to run again,
+      // effectively restarting the StreamBuilders.
+    });
+
+    // Optional: Add a small delay so the user sees the spinner
+    await Future.delayed(const Duration(seconds: 1));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,144 +55,157 @@ class _UserHomePageState extends State<UserHomePage> {
       backgroundColor: widget.isDarkMode
           ? const Color(0xFF0A0A0F)
           : const Color(0xFFF8F9FA),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          _buildAppBar(context),
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        color: Colors.blueAccent, // Custom color for the spinner
+        backgroundColor: widget.isDarkMode
+            ? const Color(0xFF1A1A2F)
+            : Colors.white,
+        edgeOffset: 100,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          slivers: [
+            _buildAppBar(context),
 
-          _buildSectionHeader(
-            "Popular Artists",
-            onSeeAll: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    SeeAllArtistScreen(isDarkMode: widget.isDarkMode),
+            _buildSectionHeader(
+              "Popular Artists",
+              onSeeAll: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      SeeAllArtistScreen(isDarkMode: widget.isDarkMode),
+                ),
               ),
             ),
-          ),
 
-          // --- 1. Popular Artists Section ---
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('artists')
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return SliverToBoxAdapter(child: _buildHorizontalShimmer());
-              }
+            // --- 1. Popular Artists Section ---
+            StreamBuilder<QuerySnapshot>(
+              key: ValueKey('artists_stream_$_refreshVersion'),
+              stream: FirebaseFirestore.instance
+                  .collection('artists')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return SliverToBoxAdapter(child: _buildHorizontalShimmer());
+                }
 
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return const SliverToBoxAdapter(
-                  child: EmptyState(
-                    isDark: false,
-                    icon: Icons.people_outline_rounded,
-                    title: "No artists found!",
-                    subtitle: "Check back later for new artists.",
-                  ),
-                );
-              }
-
-              final singers = snapshot.data!.docs
-                  .map(
-                    (doc) => Singer.fromMap(
-                      doc.data() as Map<String, dynamic>,
-                      doc.id,
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const SliverToBoxAdapter(
+                    child: EmptyState(
+                      isDark: false,
+                      icon: Icons.people_outline_rounded,
+                      title: "No artists found!",
+                      subtitle: "Check back later for new artists.",
                     ),
-                  )
-                  .toList();
+                  );
+                }
 
-              return SliverToBoxAdapter(
-                child: _buildArtistsHorizontalList(singers),
-              );
-            },
-          ),
+                final singers = snapshot.data!.docs
+                    .map(
+                      (doc) => Singer.fromMap(
+                        doc.data() as Map<String, dynamic>,
+                        doc.id,
+                      ),
+                    )
+                    .toList();
 
-          _buildSectionHeader("Trending Now"),
-
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collectionGroup('cords')
-                .limit(10)
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return _buildGridShimmer();
-              }
-
-              if (snapshot.hasError) {
-                print(
-                  "Firebase Error: ${snapshot.error}",
-                ); // Error ကို console မှာ ကြည့်ရန်
                 return SliverToBoxAdapter(
-                  child: Center(child: Text("Error loading data")),
+                  child: _buildArtistsHorizontalList(singers),
                 );
-              }
+              },
+            ),
 
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return const SliverToBoxAdapter(
-                  child: Center(child: Text("No trending songs yet.")),
-                );
-              }
+            _buildSectionHeader("Trending Now"),
 
-              final songDocs = snapshot.data!.docs;
+            StreamBuilder<QuerySnapshot>(
+              key: ValueKey('artists_stream_$_refreshVersion'),
+              stream: FirebaseFirestore.instance
+                  .collectionGroup('cords')
+                  .limit(10)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return _buildGridShimmer();
+                }
 
-              return SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 18,
-                    crossAxisSpacing: 18,
-                    childAspectRatio: 0.8,
-                  ),
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final songData =
-                        songDocs[index].data() as Map<String, dynamic>;
-                    final song = Song.fromMap(songData, songDocs[index].id);
+                if (snapshot.hasError) {
+                  print(
+                    "Firebase Error: ${snapshot.error}",
+                  ); // Error ကို console မှာ ကြည့်ရန်
+                  return SliverToBoxAdapter(
+                    child: Center(child: Text("Error loading data")),
+                  );
+                }
 
-                    // Singer data ကို song ထဲက singerId နဲ့ ပြန်ရှာရပါမယ်
-                    return FutureBuilder<DocumentSnapshot>(
-                      future: FirebaseFirestore.instance
-                          .collection('artists')
-                          .doc(song.singerId)
-                          .get(),
-                      builder: (context, singerSnapshot) {
-                        if (!singerSnapshot.hasData)
-                          return _buildSingleShimmer();
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const SliverToBoxAdapter(
+                    child: Center(child: Text("No trending songs yet.")),
+                  );
+                }
 
-                        final singer = Singer.fromMap(
-                          singerSnapshot.data!.data() as Map<String, dynamic>,
-                          singerSnapshot.data!.id,
-                        );
+                final songDocs = snapshot.data!.docs;
 
-                        return TrendingCard(
-                          singer: singer,
-                          songName: song.title,
-                          song: song,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ChordAndLyricPage(
-                                  songName: song.title,
-                                  singer: singer,
-                                  lyricsData: song.lyricsWithChords,
-                                  chordsUsed: song.chordsUsed,
-                                  songData: '',
+                return SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  sliver: SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 18,
+                          crossAxisSpacing: 18,
+                          childAspectRatio: 0.8,
+                        ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final songData =
+                          songDocs[index].data() as Map<String, dynamic>;
+                      final song = Song.fromMap(songData, songDocs[index].id);
+
+                      // Singer data ကို song ထဲက singerId နဲ့ ပြန်ရှာရပါမယ်
+                      return FutureBuilder<DocumentSnapshot>(
+                        future: FirebaseFirestore.instance
+                            .collection('artists')
+                            .doc(song.singerId)
+                            .get(),
+                        builder: (context, singerSnapshot) {
+                          if (!singerSnapshot.hasData)
+                            return _buildSingleShimmer();
+
+                          final singer = Singer.fromMap(
+                            singerSnapshot.data!.data() as Map<String, dynamic>,
+                            singerSnapshot.data!.id,
+                          );
+
+                          return TrendingCard(
+                            singer: singer,
+                            songName: song.title,
+                            song: song,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChordAndLyricPage(
+                                    songName: song.title,
+                                    singer: singer,
+                                    lyricsData: song.lyricsWithChords,
+                                    chordsUsed: song.chordsUsed,
+                                    songData: '',
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    );
-                  }, childCount: songDocs.length),
-                ),
-              );
-            },
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
-        ],
+                              );
+                            },
+                          );
+                        },
+                      );
+                    }, childCount: songDocs.length),
+                  ),
+                );
+              },
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
+        ),
       ),
     );
   }

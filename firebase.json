@@ -1,1 +1,39 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"cord-library","appId":"1:188389291755:android:51f6fceb565dc297d730ae","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"cord-library","configurations":{"android":"1:188389291755:android:51f6fceb565dc297d730ae","ios":"1:188389291755:ios:b24a55433188cf69d730ae","macos":"1:188389291755:ios:b24a55433188cf69d730ae","web":"1:188389291755:web:e57848bb807778cdd730ae","windows":"1:188389291755:web:afd3168435a5fbefd730ae"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "cord-library",
+          "appId": "1:188389291755:android:51f6fceb565dc297d730ae",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "cord-library",
+          "configurations": {
+            "android": "1:188389291755:android:51f6fceb565dc297d730ae",
+            "ios": "1:188389291755:ios:b24a55433188cf69d730ae",
+            "macos": "1:188389291755:ios:b24a55433188cf69d730ae",
+            "web": "1:188389291755:web:e57848bb807778cdd730ae",
+            "windows": "1:188389291755:web:afd3168435a5fbefd730ae"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
