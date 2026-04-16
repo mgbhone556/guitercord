@@ -3,14 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:guitercord/auth/logout.dart';
 import 'package:guitercord/ui/user/favorite.dart';
 import 'package:guitercord/model/singer.dart';
+import 'package:guitercord/ui/user/setting.dart';
 
-class AppDrawer extends StatelessWidget {
+class UserDrawer extends StatelessWidget {
   final bool isDarkMode;
   final VoidCallback onThemeToggle;
   final List<Singer> singers;
   final String currentRoute;
 
-  const AppDrawer({
+  const UserDrawer({
     super.key,
     required this.isDarkMode,
     required this.onThemeToggle,
@@ -66,7 +67,7 @@ class AppDrawer extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const FavoritesPage(),
+                            builder: (context) => const Favorite(),
                           ),
                         );
                       }
@@ -85,7 +86,15 @@ class AppDrawer extends StatelessWidget {
                   _DrawerTile(
                     icon: Icons.settings_outlined,
                     title: "Settings",
-                    onTap: () {},
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Setting(
+                          isDarkMode: isDarkMode,
+                          onThemeToggle: onThemeToggle,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

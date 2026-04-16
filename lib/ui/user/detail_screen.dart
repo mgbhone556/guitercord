@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:guitercord/core/empty_state.dart';
 import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
-import 'package:guitercord/ui/user/cord.dart';
+import 'package:guitercord/ui/user/cord&lyric_page.dart';
 
 class DetailScreen extends StatelessWidget {
   final Singer singer;
@@ -207,7 +207,7 @@ class DetailScreen extends StatelessWidget {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ChordViewScreen(
+                                    builder: (context) => ChordAndLyricPage(
                                       songName: currentSong.title,
                                       singer: singer,
                                       lyricsData: currentSong.lyricsWithChords,

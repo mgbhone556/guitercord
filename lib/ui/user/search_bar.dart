@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+class SearchBar extends StatefulWidget {
+  const SearchBar({super.key});
 
   @override
-  State<SearchPage> createState() => _SearchPageState();
+  State<SearchBar> createState() => _SearchBarState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class _SearchBarState extends State<SearchBar> {
   final TextEditingController _controller = TextEditingController();
 
   // Mock data for History - In a real app, load this from SharedPreferences

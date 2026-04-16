@@ -2,14 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:guitercord/model/singer.dart';
 
-class ArtistPage extends StatefulWidget {
-  const ArtistPage({super.key});
+class CreateArtistPage extends StatefulWidget {
+  const CreateArtistPage({super.key});
 
   @override
-  State<ArtistPage> createState() => _ArtistPageState();
+  State<CreateArtistPage> createState() => _CreateArtistPageState();
 }
 
-class _ArtistPageState extends State<ArtistPage> {
+class _CreateArtistPageState extends State<CreateArtistPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Function to show the "Add/Edit" Form

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
-import 'package:guitercord/ui/user/cord.dart';
-import 'package:guitercord/ui/user/detail.dart';
+import 'package:guitercord/ui/user/cord&lyric_page.dart';
+import 'package:guitercord/ui/user/detail_screen.dart';
 
 class TrendingCard extends StatelessWidget {
   final String songName;
@@ -31,7 +31,7 @@ class TrendingCard extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ChordViewScreen(
+                builder: (context) => ChordAndLyricPage(
                   songName: songName,
                   singer: singer,
                   songData: '',
@@ -291,7 +291,7 @@ class SongTile extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ChordViewScreen(
+              builder: (context) => ChordAndLyricPage(
                 songName: song.title,
                 singer: singer,
                 songData: '',

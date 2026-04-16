@@ -4,16 +4,16 @@ import 'package:guitercord/provider/favorites_provider.dart';
 import 'package:guitercord/core/empty_state.dart';
 import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
-import 'package:guitercord/ui/user/cord.dart';
+import 'package:guitercord/ui/user/cord&lyric_page.dart';
 
-class FavoritesPage extends StatefulWidget {
-  const FavoritesPage({super.key});
+class Favorite extends StatefulWidget {
+  const Favorite({super.key});
 
   @override
-  State<FavoritesPage> createState() => _FavoritesPageState();
+  State<Favorite> createState() => _FavoriteState();
 }
 
-class _FavoritesPageState extends State<FavoritesPage> {
+class _FavoriteState extends State<Favorite> {
   @override
   Widget build(BuildContext context) {
     final List<String> favoriteNames = FavoritesManager.getFavoriteSongs()
@@ -116,7 +116,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ChordViewScreen(
+                                    builder: (context) => ChordAndLyricPage(
                                       songName: song.title,
                                       singer: singer,
                                       lyricsData: song.lyricsWithChords,

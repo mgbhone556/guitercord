@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class OverviewPage extends StatelessWidget {
-  const OverviewPage({super.key});
+class OverviewScreen extends StatelessWidget {
+  const OverviewScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -2,10 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
-import 'package:guitercord/ui/admin/song_create_with_cord.dart';
+import 'package:guitercord/ui/admin/create_cord&lyric.dart';
 
-class ManageArtistForSongPage extends StatelessWidget {
-  const ManageArtistForSongPage({super.key});
+class CreatedArtistList extends StatelessWidget {
+  const CreatedArtistList({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +82,7 @@ class ManageArtistForSongPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AdminAddSongPage(
+                        builder: (context) => CreateCordAndlyric(
                           singer: singer,
                           song: Song(
                             id: null,

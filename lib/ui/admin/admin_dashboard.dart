@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:guitercord/ui/admin/drawer.dart';
-import 'package:guitercord/ui/admin/artist_list.dart';
-import 'overview.dart';
-import 'artist_create.dart';
+import 'package:guitercord/ui/admin/admin_drawer.dart';
+import 'package:guitercord/ui/admin/created_artist_list.dart';
+import 'overview_screen.dart';
+import 'create_artist_page.dart';
 
-class AdminHome extends StatefulWidget {
-  const AdminHome({super.key});
+class AdminDashboard extends StatefulWidget {
+  const AdminDashboard({super.key});
 
   @override
-  State<AdminHome> createState() => _AdminHomeState();
+  State<AdminDashboard> createState() => _AdminDashboardState();
 }
 
-class _AdminHomeState extends State<AdminHome> {
+class _AdminDashboardState extends State<AdminDashboard> {
   int selectedIndex = 0;
 
   Widget _getPage() {
     switch (selectedIndex) {
       case 0:
-        return const OverviewPage();
+        return const OverviewScreen();
       case 2:
-        return const ArtistPage();
+        return const CreateArtistPage();
       case 3:
-        return const ManageArtistForSongPage();
+        return const CreatedArtistList();
       default:
-        return const OverviewPage();
+        return const OverviewScreen();
     }
   }
 

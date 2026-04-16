@@ -3,18 +3,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
-import 'package:guitercord/ui/admin/dashboard.dart';
-import 'package:guitercord/ui/user/home.dart';
+import 'package:guitercord/ui/admin/admin_dashboard.dart';
+import 'package:guitercord/ui/user/user_home_page.dart';
 
-class AuthWrapper extends StatefulWidget {
+class AuthRoleWrapper extends StatefulWidget {
   final User user;
-  const AuthWrapper({super.key, required this.user});
+  const AuthRoleWrapper({super.key, required this.user});
 
   @override
-  State<AuthWrapper> createState() => _AuthWrapperState();
+  State<AuthRoleWrapper> createState() => _AuthRoleWrapperState();
 }
 
-class _AuthWrapperState extends State<AuthWrapper> {
+class _AuthRoleWrapperState extends State<AuthRoleWrapper> {
   bool isDarkMode = false;
   void toggleTheme() => setState(() => isDarkMode = !isDarkMode);
 
@@ -37,8 +37,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
           String role = data['role'] ?? 'user';
 
           return role == 'admin'
-              ? const AdminHome()
-              : HomeScreen(
+              ? const AdminDashboard()
+              : UserHomePage(
                   onThemeToggle: toggleTheme,
                   isDarkMode: isDarkMode,
                   singer: Singer(

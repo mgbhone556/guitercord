@@ -3,13 +3,13 @@ import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/provider/favorites_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-class ChordViewScreen extends StatefulWidget {
+class ChordAndLyricPage extends StatefulWidget {
   final String songName;
   final Singer singer;
   final List<Map<String, String>> lyricsData;
   final List<String> chordsUsed;
 
-  const ChordViewScreen({
+  const ChordAndLyricPage({
     super.key,
     required this.songName,
     required this.singer,
@@ -19,10 +19,10 @@ class ChordViewScreen extends StatefulWidget {
   });
 
   @override
-  State<ChordViewScreen> createState() => _ChordViewScreenState();
+  State<ChordAndLyricPage> createState() => _ChordAndLyricPageState();
 }
 
-class _ChordViewScreenState extends State<ChordViewScreen> {
+class _ChordAndLyricPageState extends State<ChordAndLyricPage> {
   late bool _isFavorited;
 
   @override

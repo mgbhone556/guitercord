@@ -3,19 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
 import 'package:guitercord/service/singer_service.dart';
-import 'package:guitercord/ui/admin/cord_history.dart';
+import 'package:guitercord/ui/admin/admin_created_cord_history_list.dart';
 
-class AdminAddSongPage extends StatefulWidget {
+class CreateCordAndlyric extends StatefulWidget {
   final Singer singer;
   final Song? song;
 
-  const AdminAddSongPage({super.key, required this.singer, this.song});
+  const CreateCordAndlyric({super.key, required this.singer, this.song});
 
   @override
-  State<AdminAddSongPage> createState() => _AdminAddSongPageState();
+  State<CreateCordAndlyric> createState() => _CreateCordAndlyricState();
 }
 
-class _AdminAddSongPageState extends State<AdminAddSongPage> {
+class _CreateCordAndlyricState extends State<CreateCordAndlyric> {
   String? _selectedSong;
   final _chordController = TextEditingController();
   // Single controller for the entire Notepad input
@@ -77,7 +77,7 @@ class _AdminAddSongPageState extends State<AdminAddSongPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AdminChordHistoryPage(
+                  builder: (context) => AdminCreatedChordHistoryList(
                     singer: widget.singer,
                     onEdit: _startEditing,
                   ),

@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:guitercord/auth/role.dart';
+import 'package:guitercord/auth/auth_role_wrapper.dart';
 import 'package:guitercord/auth/login.dart';
 import 'package:guitercord/firebase_options.dart';
 import 'package:guitercord/provider/favorites_provider.dart';
@@ -61,7 +61,7 @@ class AuthEntryGate extends StatelessWidget {
         }
 
         if (snapshot.hasData && snapshot.data != null) {
-          return AuthWrapper(user: snapshot.data!);
+          return AuthRoleWrapper(user: snapshot.data!);
         }
 
         return const LoginScreen();

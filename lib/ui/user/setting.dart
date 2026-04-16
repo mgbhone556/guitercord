@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class SettingsPage extends StatelessWidget {
+class Setting extends StatelessWidget {
   final bool isDarkMode;
   final VoidCallback onThemeToggle;
 
-  const SettingsPage({
+  const Setting({
     super.key,
     required this.isDarkMode,
     required this.onThemeToggle,

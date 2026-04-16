@@ -1,23 +1,23 @@
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide SearchBar;
 import 'package:guitercord/core/empty_state.dart';
 import 'package:guitercord/model/song.dart';
-import 'package:guitercord/ui/user/cord.dart';
+import 'package:guitercord/ui/user/cord&lyric_page.dart';
+import 'package:guitercord/ui/user/search_bar.dart';
 import 'package:guitercord/widget/card.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:guitercord/model/singer.dart';
-import 'package:guitercord/ui/user/all_artist.dart';
-import 'package:guitercord/ui/user/drawer.dart';
-import 'package:guitercord/ui/user/search.dart';
+import 'package:guitercord/ui/user/see_all_artist_screen.dart';
+import 'package:guitercord/ui/user/user_drawer.dart';
 
-class HomeScreen extends StatefulWidget {
+class UserHomePage extends StatefulWidget {
   final VoidCallback onThemeToggle;
   final bool isDarkMode;
   final Song? song;
   final Singer? singer;
 
-  const HomeScreen({
+  const UserHomePage({
     super.key,
     required this.onThemeToggle,
     required this.isDarkMode,
@@ -26,14 +26,14 @@ class HomeScreen extends StatefulWidget {
   });
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<UserHomePage> createState() => _UserHomePageState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _UserHomePageState extends State<UserHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: AppDrawer(
+      drawer: UserDrawer(
         isDarkMode: widget.isDarkMode,
         onThemeToggle: widget.onThemeToggle,
         singers: [],
@@ -51,7 +51,8 @@ class _HomeScreenState extends State<HomeScreen> {
             onSeeAll: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => AllArtistsPage(isDarkMode: widget.isDarkMode),
+                builder: (_) =>
+                    SeeAllArtistScreen(isDarkMode: widget.isDarkMode),
               ),
             ),
           ),
@@ -158,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ChordViewScreen(
+                                builder: (context) => ChordAndLyricPage(
                                   songName: song.title,
                                   singer: singer,
                                   lyricsData: song.lyricsWithChords,
@@ -207,7 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
         IconButton(
           onPressed: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const SearchPage()),
+            MaterialPageRoute(builder: (_) => const SearchBar()),
           ),
           icon: const Icon(Icons.search_rounded),
           style: IconButton.styleFrom(

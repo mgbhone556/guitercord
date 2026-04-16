@@ -1,14 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Add this
 import 'package:flutter/material.dart';
-import 'package:guitercord/ui/user/detail.dart';
+import 'package:guitercord/ui/user/detail_screen.dart';
 import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/core/empty_state.dart';
 
-class AllArtistsPage extends StatelessWidget {
+class SeeAllArtistScreen extends StatelessWidget {
   final bool isDarkMode;
 
-  const AllArtistsPage({super.key, required this.isDarkMode});
+  const SeeAllArtistScreen({super.key, required this.isDarkMode});
 
   @override
   Widget build(BuildContext context) {

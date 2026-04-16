@@ -4,11 +4,11 @@ import 'package:guitercord/model/singer.dart';
 import 'package:guitercord/model/song.dart';
 import 'package:guitercord/service/singer_service.dart';
 
-class AdminChordHistoryPage extends StatelessWidget {
+class AdminCreatedChordHistoryList extends StatelessWidget {
   final Singer singer;
   final Function(Song) onEdit;
 
-  const AdminChordHistoryPage({
+  const AdminCreatedChordHistoryList({
     super.key,
     required this.singer,
     required this.onEdit,
