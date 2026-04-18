@@ -6,7 +6,7 @@ import 'package:guitercord/auth/login.dart';
 import 'package:guitercord/firebase_options.dart';
 import 'package:guitercord/provider/favorites_provider.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await Firebase.initializeApp(
