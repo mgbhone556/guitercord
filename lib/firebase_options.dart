@@ -64,6 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '188389291755',
     projectId: 'cord-library',
     storageBucket: 'cord-library.firebasestorage.app',
+    androidClientId: '188389291755-s60m78rfi35eakqrsdjij7v0b7ahup90.apps.googleusercontent.com',
+    iosClientId: '188389291755-jf5fsupk7855bpk4hsf4e9420ki94mcs.apps.googleusercontent.com',
     iosBundleId: 'com.example.guitercord',
   );
 
@@ -73,6 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '188389291755',
     projectId: 'cord-library',
     storageBucket: 'cord-library.firebasestorage.app',
+    androidClientId: '188389291755-s60m78rfi35eakqrsdjij7v0b7ahup90.apps.googleusercontent.com',
+    iosClientId: '188389291755-jf5fsupk7855bpk4hsf4e9420ki94mcs.apps.googleusercontent.com',
     iosBundleId: 'com.example.guitercord',
   );
 
@@ -85,4 +89,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'cord-library.firebasestorage.app',
     measurementId: 'G-33TKPBW1J8',
   );
+
 }

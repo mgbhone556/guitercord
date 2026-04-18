@@ -88,6 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Text(
                     "Guitercord",
                     style: TextStyle(
+                      color: Colors.black87,
                       fontSize: 36,
                       fontWeight: FontWeight.w900,
                       letterSpacing: -1,
